@@ -1,11 +1,7 @@
-// ui/canvas.js
 import { DB } from '../debug/DB.js';
+import { setupEventHandlers } from './eventHandlers.js';
 
-const layers = ['EGF', 'Terrain', 'AUT'];
-
-
-// canvas.js
-// canvas.js
+export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
 export let gridConfig;
 export let EGFMap = [];
 export let TerrainMap = [];
@@ -14,17 +10,13 @@ fetch('../data/gridConfig.json')
     .then(response => response.json())
     .then(async (config) => {
         gridConfig = config;
-        
         await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
-        
-        const handlersModule = await import('./eventHandlers.js');
-        handlersModule.setupEventHandlers(); // explicitly set handlers now
-        
         initCanvas();
         window.addEventListener('resize', handleResize);
+        setupEventHandlers({ EGFMap, gridConfig, redrawCanvas });
     })
     .catch(err => console.error('Failed to load gridConfig:', err));
-    
+
 export function redrawCanvas() {
     layers.forEach(layer => {
         const canvas = document.getElementById(`canvas-${layer}`);

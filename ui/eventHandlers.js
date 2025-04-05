@@ -2,7 +2,7 @@
 import { redrawCanvas, gridConfig, EGFMap } from './canvas.js';
 import { DB } from '../debug/DB.js';
 
-export function setupEventHandlers() {
+export function setupEventHandlers({ EGFMap, gridConfig, redrawCanvas }) {
     const gameCanvas = document.getElementById('gameCanvas');
     let selectedBrushShape = 'circle';
     let cursorSize = 20;
@@ -27,7 +27,7 @@ export function setupEventHandlers() {
             ctx.strokeRect(x - cursorSize / 2, y - cursorSize / 2, cursorSize, cursorSize);
         }
 
-        DB(DB.UI, `Cursor moved explicitly to ${x}, ${y}`);
+        DB(DB.UI, `Cursor moved to ${x}, ${y}`);
     });
 
     gameCanvas.addEventListener('click', (e) => {
@@ -38,10 +38,13 @@ export function setupEventHandlers() {
         const x = Math.floor((e.clientX - rect.left) / cellSize);
         const y = Math.floor((e.clientY - rect.top) / cellSize);
 
-        DB(DB.UI, `Explicitly clicked cell (${x}, ${y})`);
+        DB(DB.UI, `Clicked cell (${x}, ${y})`);
 
-        EGFMap[y][x] = 50;
-
-        redrawCanvas();
+        if (EGFMap[y] && x >= 0 && x < gridConfig.gridWidth && y >= 0 && y < gridConfig.gridHeight) {
+            EGFMap[y][x] = 50;
+            redrawCanvas();
+        } else {
+            DB(DB.UI, `Out of bounds click: (${x}, ${y})`);
+        }
     });
 }
