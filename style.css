@@ -101,3 +101,36 @@ label {
     padding: 0 !important;
     flex-shrink: 0 !important;
 }
+
+.checkbox-container {
+    width: 160px;
+    max-height: 90px; /* exactly 4 checkboxes visible */
+    overflow-y: auto;
+    background: rgba(30,30,30,0.95);
+    color: white;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 12px;
+    margin-left: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.checkbox-container strong {
+    display: block;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.checkbox-list label {
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+
+.checkbox-list input[type=checkbox] {
+    margin: 0 6px 0 0 !important;
+    flex-shrink: 0;
+}

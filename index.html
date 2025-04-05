@@ -13,15 +13,10 @@
     <div id="controlBar">
         <div id="controlPanel">
             <!-- Layers Visible menu explicitly moved left for global visibility -->
-            <label>
-                Layers Visible:
-                <select multiple id="layersVisible" size="3">
-                    <option value="EGF" selected>EGF</option>
-                    <option value="Terrain" selected>Terrain</option>
-                    <option value="AUT" selected>AUT</option>
-                </select>
-            </label>
-
+            <div id="layersVisibleContainer" class="checkbox-container">
+                <strong>Layers Visible</strong>
+                <div id="layersVisibleCheckboxes" class="checkbox-list"></div>
+            </div>
             <label>
                 Edit Mode:
                 <select id="layerSelect">
@@ -62,6 +57,7 @@
     </div>
 
     <!-- Scripts explicitly required -->
+    <script type="module" src="ui/layersVisibleCheckboxes.js"></script>
     <script type="module" src="debug/DB.js"></script>
     <script type="module" src="ui/debugCheckboxes.js"></script>
     <script type="module" src="ui/canvas.js"></script>
