@@ -56,39 +56,30 @@ DB.classToString = function(dbClass) {
 // Ensure DB.INIT is enabled for initialization
 DB.enabledDB.add(DB.INIT);
 
-// Explicit initialization for debugging
-DB.initializeForDebug = function(gridConfig, EGFMap, TerrainMap) {
-    if (!DB.enabledDB.has(DB.INIT)) return;
+// debug/DB.js (explicitly async initialization)
+DB.initializeForDebug = async function(gridConfig, EGFMap, TerrainMap) {
+  return new Promise((resolve) => {
+      const { gridWidth, gridHeight, terrainScaleFactor, defaultTerrainType } = gridConfig;
 
-    DB(DB.INIT, "Initializing maps explicitly for debug.");
+      for (let y = 0; y < gridHeight; y++) {
+          EGFMap[y] = [];
+          for (let x = 0; x < gridWidth; x++) {
+              // Explicit gradient initialization
+              const arv = -10 + (x / (gridWidth - 1)) * 20;
+              EGFMap[y][x] = arv;
+          }
+      }
 
-    // Initialize EGF map explicitly with ARV gradient (min → max)
-    const { gridWidth, gridHeight, initialARV } = gridConfig;
-    const minARV = -10; // explicit min ARV
-    const maxARV = 10;  // explicit max ARV
+      const terrainGridWidth = gridWidth / terrainScaleFactor;
+      const terrainGridHeight = gridHeight / terrainScaleFactor;
+      for (let y = 0; y < terrainGridHeight; y++) {
+          TerrainMap[y] = [];
+          for (let x = 0; x < terrainGridWidth; x++) {
+              TerrainMap[y][x] = defaultTerrainType || 'flat';
+          }
+      }
 
-    for (let y = 0; y < gridHeight; y++) {
-        EGFMap[y] = [];
-        for (let x = 0; x < gridWidth; x++) {
-            // Explicit left-to-right linear gradient calculation
-            const arv = minARV + (x / (gridWidth - 1)) * (maxARV - minARV);
-            EGFMap[y][x] = arv;
-        }
-    }
-
-    DB(DB.INIT, "EGF Map initialized explicitly:", EGFMap);
-
-    // Initialize Terrain map explicitly with default type from gridConfig
-    const terrainType = gridConfig.defaultTerrainType || "flat";
-    const terrainGridWidth = gridWidth / gridConfig.terrainScaleFactor;
-    const terrainGridHeight = gridHeight / gridConfig.terrainScaleFactor;
-
-    for (let y = 0; y < terrainGridHeight; y++) {
-        TerrainMap[y] = [];
-        for (let x = 0; x < terrainGridWidth; x++) {
-            TerrainMap[y][x] = terrainType;
-        }
-    }
-
-    DB(DB.INIT, "Terrain Map initialized explicitly:", TerrainMap);
+      DB(DB.INIT, "EGF and Terrain maps initialized explicitly.");
+      resolve();
+  });
 };

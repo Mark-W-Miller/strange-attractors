@@ -3,21 +3,25 @@ import { DB } from '../debug/DB.js';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
 
-let gridConfig;
-let EGFMap = [];
-let TerrainMap = [];
+
+// canvas.js
+export let gridConfig;
+export let EGFMap = [];
+export let TerrainMap = [];
 
 fetch('../data/gridConfig.json')
     .then(response => response.json())
     .then(async (config) => {
         gridConfig = config;
-        DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
-        await import('./eventHandlers.js');
+        
+        await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap); // explicitly await
+        
+        await import('./eventHandlers.js'); // explicitly import AFTER initialization
         initCanvas();
         window.addEventListener('resize', handleResize);
     })
     .catch(err => console.error('Failed to load gridConfig:', err));
-
+    
 export function redrawCanvas() {
     layers.forEach(layer => {
         const canvas = document.getElementById(`canvas-${layer}`);
