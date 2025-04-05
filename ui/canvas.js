@@ -1,15 +1,24 @@
 // ui/canvas.js
 import { DB } from '../debug/DB.js';
-import gridConfig from '../data/gridConfig.json';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
 
-// Explicitly use gridConfig
-const {
-    gridWidth,
-    gridHeight,
-    terrainScaleFactor
-} = gridConfig;
+let gridConfig;
+let EGFMap = [];
+let TerrainMap = [];
+
+fetch('../data/gridConfig.json')
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        return response.json();
+    })
+    .then(config => {
+        gridConfig = config;
+        DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
+        initCanvas(); // Initialize explicitly after config loaded
+        window.addEventListener('resize', handleResize); // Explicitly attach resize after config
+    })
+    .catch(err => console.error('Failed to load gridConfig:', err));
 
 export function redrawCanvas() {
     DB(DB.RND, "Redrawing explicitly all visible layers.");
@@ -23,14 +32,10 @@ export function redrawCanvas() {
 
 function drawLayer(layer) {
     const canvas = document.getElementById(`canvas-${layer}`);
-    if (!canvas) {
-        DB(DB.RND, `Canvas for layer "${layer}" explicitly not found.`);
-        return;
-    }
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    DB(DB.RND, `Drawing explicitly layer: ${layer}`);
 
     switch (layer) {
         case 'EGF':
@@ -42,64 +47,49 @@ function drawLayer(layer) {
         case 'AUT':
             drawAUTs(ctx, canvas.width, canvas.height);
             break;
-        default:
-            DB(DB.RND, `No explicit drawing method for layer "${layer}"`);
     }
 }
 
 function drawEGF(ctx, width, height) {
-    DB(DB.RND, "Drawing explicitly the EGF layer.");
-
+    const { gridWidth, gridHeight } = gridConfig;
     const cellWidth = width / gridWidth;
     const cellHeight = height / gridHeight;
 
-    ctx.strokeStyle = '#aaa';
-    for (let x = 0; x <= gridWidth; x++) {
-        ctx.beginPath();
-        ctx.moveTo(x * cellWidth, 0);
-        ctx.lineTo(x * cellWidth, height);
-        ctx.stroke();
-    }
-
-    for (let y = 0; y <= gridHeight; y++) {
-        ctx.beginPath();
-        ctx.moveTo(0, y * cellHeight);
-        ctx.lineTo(width, y * cellHeight);
-        ctx.stroke();
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+            const arv = EGFMap[y][x];
+            const normalized = (arv + 10) / 20;
+            const shade = Math.floor(255 * normalized);
+            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+            ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+        }
     }
 }
 
 function drawTerrain(ctx, width, height) {
-    DB(DB.RND, "Drawing explicitly the Terrain layer.");
-
-    // Explicitly calculate the terrain grid size
+    const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity } = gridConfig;
     const terrainGridWidth = gridWidth / terrainScaleFactor;
     const terrainGridHeight = gridHeight / terrainScaleFactor;
-
     const cellWidth = width / terrainGridWidth;
     const cellHeight = height / terrainGridHeight;
 
-    ctx.fillStyle = 'rgba(139,69,19,0.5)';
-    for (let x = 0; x < terrainGridWidth; x++) {
-        for (let y = 0; y < terrainGridHeight; y++) {
-            if ((x + y) % 2 === 0) {
-                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-            }
+    ctx.fillStyle = `rgba(139,69,19,${terrainOpacity})`;
+
+    for (let y = 0; y < terrainGridHeight; y++) {
+        for (let x = 0; x < terrainGridWidth; x++) {
+            ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
     }
 }
 
 function drawAUTs(ctx, width, height) {
-    DB(DB.RND, "Drawing explicitly the AUTs layer.");
-
-    // Placeholder example
     ctx.fillStyle = 'rgba(0,128,255,0.7)';
     ctx.beginPath();
     ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2);
     ctx.fill();
 }
 
-// Explicit resize handler for perfect alignment
+// Explicit resize handler
 function handleResize() {
     const container = document.getElementById('gameCanvas');
     const width = container.clientWidth;
@@ -110,19 +100,14 @@ function handleResize() {
         if (canvas) {
             canvas.width = width;
             canvas.height = height;
-            DB(DB.RND, `Canvas explicitly resized: ${layer} (${width}x${height})`);
         }
     });
 
     redrawCanvas();
 }
 
-// Explicit initial setup
+// Explicit initialization after config loads
 function initCanvas() {
     handleResize();
     redrawCanvas();
 }
-
-// Explicitly add event listeners
-window.addEventListener('resize', handleResize);
-document.addEventListener('DOMContentLoaded', initCanvas);
