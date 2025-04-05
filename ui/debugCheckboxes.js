@@ -1,32 +1,33 @@
 // ui/debugCheckboxes.js
 import { DB } from '../debug/DB.js';
 
-const debugCheckboxContainer = document.getElementById('debugCheckboxes');
+const debugCheckboxes = document.getElementById('debugCheckboxes');
 
-// Explicitly generate checkboxes based on DB classes
-Object.entries(DB)
-    .filter(([key, value]) => typeof value === 'number')
-    .forEach(([name, classId]) => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = DB.enabledDB.has(classId);
-        checkbox.id = `db-checkbox-${name}`;
+function createDebugCheckboxes() {
+    Object.entries(DB)
+        .filter(([_, val]) => typeof val === 'number')
+        .forEach(([name, classId]) => {
+            const label = document.createElement('label');
+            
+            // Explicitly create checkbox input
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = DB.enabledDB.has(classId);
+            checkbox.id = `db-checkbox-${name}`;
 
-        checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-                DB.enabledDB.add(classId);
-            } else {
-                DB.enabledDB.delete(classId);
-            }
-            DB(DB.RND, `Toggled debug: ${name}`, checkbox.checked);
+            checkbox.onchange = () => {
+                checkbox.checked
+                    ? DB.enabledDB.add(classId)
+                    : DB.enabledDB.delete(classId);
+                DB(DB.RND, `Debug ${name}:`, checkbox.checked);
+            };
+
+            // Explicitly append checkbox and text to label correctly
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(name));
+
+            debugCheckboxes.appendChild(label);
         });
+}
 
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.textContent = name;
-
-        const wrapper = document.createElement('div');
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        debugCheckboxContainer.appendChild(wrapper);
-    });
+document.addEventListener('DOMContentLoaded', createDebugCheckboxes);
