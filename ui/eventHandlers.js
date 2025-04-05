@@ -1,7 +1,6 @@
 import { redrawCanvas } from './canvas.js';
 import { DB } from '../debug/DB.js';
 
-window.addEventListener('resize', handleResize);
 
 function handleResize() {
     const canvases = ['canvas-EGF', 'canvas-Terrain', 'canvas-AUT'];
