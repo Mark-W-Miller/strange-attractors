@@ -1,6 +1,11 @@
 {
-  "gridWidth": 40,
-  "gridHeight": 24,
+  "gridWidth": 20,
+  "gridHeight": 20,
   "terrainScaleFactor": 2,
-  "terrainOpacity": 0.5
+  "terrainOpacity": 0.8,
+  "gridLineColors": {
+    "EGF": "#CCCCCC",
+    "Terrain": "#AAAAAA"
+  },
+  "initialARV": 0
 }

@@ -1,5 +1,5 @@
 import { DB } from '../debug/DB.js';
-
+import { redrawCanvas } from './canvas.js';
 const layers = ['EGF', 'Terrain', 'AUT'];
 const layersVisible = new Set(['EGF', 'Terrain']); // Initially: AUT not selected
 

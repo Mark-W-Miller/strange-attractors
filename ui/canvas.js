@@ -1,7 +1,15 @@
 // ui/canvas.js
 import { DB } from '../debug/DB.js';
+import gridConfig from '../gridConfig.json';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
+
+// Explicitly use gridConfig
+const {
+    gridWidth,
+    gridHeight,
+    terrainScaleFactor
+} = gridConfig;
 
 export function redrawCanvas() {
     DB(DB.RND, "Redrawing explicitly all visible layers.");
@@ -42,19 +50,21 @@ function drawLayer(layer) {
 function drawEGF(ctx, width, height) {
     DB(DB.RND, "Drawing explicitly the EGF layer.");
 
-    // Example explicit EGF grid drawing
-    const cellSize = 20;
-    ctx.strokeStyle = '#ccc';
-    for (let x = 0; x <= width; x += cellSize) {
+    const cellWidth = width / gridWidth;
+    const cellHeight = height / gridHeight;
+
+    ctx.strokeStyle = '#aaa';
+    for (let x = 0; x <= gridWidth; x++) {
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
+        ctx.moveTo(x * cellWidth, 0);
+        ctx.lineTo(x * cellWidth, height);
         ctx.stroke();
     }
-    for (let y = 0; y <= height; y += cellSize) {
+
+    for (let y = 0; y <= gridHeight; y++) {
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
+        ctx.moveTo(0, y * cellHeight);
+        ctx.lineTo(width, y * cellHeight);
         ctx.stroke();
     }
 }
@@ -62,13 +72,19 @@ function drawEGF(ctx, width, height) {
 function drawTerrain(ctx, width, height) {
     DB(DB.RND, "Drawing explicitly the Terrain layer.");
 
-    // Explicit terrain example (grid-aligned squares)
-    const cellSize = 20;
-    ctx.fillStyle = 'rgba(139,69,19,0.5)'; // brownish color
+    // Explicitly calculate the terrain grid size
+    const terrainGridWidth = gridWidth / terrainScaleFactor;
+    const terrainGridHeight = gridHeight / terrainScaleFactor;
 
-    for (let x = 0; x < width; x += cellSize * 2) {
-        for (let y = 0; y < height; y += cellSize * 2) {
-            ctx.fillRect(x, y, cellSize, cellSize);
+    const cellWidth = width / terrainGridWidth;
+    const cellHeight = height / terrainGridHeight;
+
+    ctx.fillStyle = 'rgba(139,69,19,0.5)';
+    for (let x = 0; x < terrainGridWidth; x++) {
+        for (let y = 0; y < terrainGridHeight; y++) {
+            if ((x + y) % 2 === 0) {
+                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
         }
     }
 }
@@ -76,14 +92,14 @@ function drawTerrain(ctx, width, height) {
 function drawAUTs(ctx, width, height) {
     DB(DB.RND, "Drawing explicitly the AUTs layer.");
 
-    // Explicit placeholder for AUT rendering
+    // Placeholder example
     ctx.fillStyle = 'rgba(0,128,255,0.7)';
     ctx.beginPath();
     ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2);
     ctx.fill();
 }
 
-// Explicit resize handler for alignment
+// Explicit resize handler for perfect alignment
 function handleResize() {
     const container = document.getElementById('gameCanvas');
     const width = container.clientWidth;

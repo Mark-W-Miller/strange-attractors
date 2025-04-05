@@ -1,4 +1,5 @@
 import { redrawCanvas } from './canvas.js';
+import { DB } from '../debug/DB.js';
 
 window.addEventListener('resize', handleResize);
 
