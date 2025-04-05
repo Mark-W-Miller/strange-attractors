@@ -1,6 +1,6 @@
 // ui/canvas.js
 import { DB } from '../debug/DB.js';
-import gridConfig from '../gridConfig.json';
+import gridConfig from '../data/gridConfig.json';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
 

@@ -1,6 +1,6 @@
 {
-  "gridWidth": 20,
-  "gridHeight": 20,
+  "gridWidth": 40,
+  "gridHeight": 24,
   "terrainScaleFactor": 2,
   "terrainOpacity": 0.8,
   "gridLineColors": {
