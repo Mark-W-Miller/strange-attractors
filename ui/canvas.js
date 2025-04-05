@@ -8,16 +8,19 @@ let EGFMap = [];
 let TerrainMap = [];
 
 
+// canvas.js
 fetch('../data/gridConfig.json')
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-        return response.json();
-    })
-    .then(config => {
+    .then(response => response.json())
+    .then(async (config) => {
         gridConfig = config;
         DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
-        initCanvas(); // Initialize explicitly after config loaded
-        window.addEventListener('resize', handleResize); // Explicitly attach resize after config
+        initCanvas();
+
+        // Explicitly import eventHandlers after gridConfig is loaded:
+        await import('./eventHandlers.js');
+        
+        // Now attach resize explicitly after handlers loaded
+        window.addEventListener('resize', handleResize);
     })
     .catch(err => console.error('Failed to load gridConfig:', err));
 

@@ -2,7 +2,7 @@
   "gridWidth": 20,
   "gridHeight": 20,
   "terrainScaleFactor": 2,
-  "terrainOpacity": 0.1,
+  "terrainOpacity": 0.5,
   "gridLineColors": {
     "EGF": "#CCCCCC",
     "Terrain": "#AAAAAA"
