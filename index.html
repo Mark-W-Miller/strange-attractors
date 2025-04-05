@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Strange Attractors 4</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="controlBar">
+        <div id="controlPanel">
+            <!-- Layers Visible menu explicitly moved left for global visibility -->
+            <label>
+                Layers Visible:
+                <select multiple id="layersVisible" size="3">
+                    <option value="EGF" selected>EGF</option>
+                    <option value="Terrain" selected>Terrain</option>
+                    <option value="AUT" selected>AUT</option>
+                </select>
+            </label>
+    
+            <label>
+                Edit Mode:
+                <select id="layerSelect">
+                    <option value="EGF">EGF</option>
+                    <option value="Terrain">Terrain</option>
+                    <option value="AUT">AUT</option>
+                </select>
+            </label>
+    
+            <label>
+                Brush Shape:
+                <select id="brushShape">
+                    <option value="circle">Circle Brush</option>
+                    <option value="square">Square Brush</option>
+                </select>
+            </label>
+    
+            <label>
+                <input type="checkbox" id="debugCheckbox"> Debug
+            </label>
+    
+            <div id="terrainControls" style="display:none;">
+                <label>
+                    Terrain Type:
+                    <select id="terrainType">
+                        <option value="wall">Wall</option>
+                        <option value="flat">Flat</option>
+                        <option value="rough">Rough</option>
+                        <option value="water">Water</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    
+        <button id="addAutBtn">Add AUT</button>
+    </div>
+
+    <script type="module" src="ui/canvas.js"></script>
+    <script type="module" src="ui/controlBar.js"></script>
+    <script type="module" src="ui/eventHandlers.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+// Explicit UI event handling (clicks, drags, etc.)

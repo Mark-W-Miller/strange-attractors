@@ -1,0 +1,66 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #f4ece3;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SPACE explicitly defined with margins and border */
+#gameCanvas {
+    background-color: #ffffff;
+    border: 2px solid #b08d57;
+    box-sizing: border-box;
+    width: calc(100% - 40px); /* Explicit margin 20px each side */
+    height: 80vh;
+    margin: 20px auto; /* Explicit margins: 20px top-bottom, auto horizontal centering */
+    display: block;
+}
+
+#controlBar {
+    background-color: #e6d3b8;
+    border-top: 2px solid #b08d57;
+    height: 20vh;
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+#controlPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#layerSelect {
+    padding: 6px 12px;
+    font-size: 16px;
+}
+
+#addAutBtn {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #b08d57;
+    color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: background-color 0.3s;
+}
+
+#addAutBtn:hover {
+    background-color: #8a6e45;
+}

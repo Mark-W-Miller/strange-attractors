@@ -1,0 +1,1 @@
+// Explicit helper functions (selection, highlights, etc.)
