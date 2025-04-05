@@ -51,7 +51,20 @@ function drawEGF(ctx, width, height) {
     const { gridWidth, gridHeight, gridLineColors } = gridConfig;
     const cellSize = Math.min(width / gridWidth, height / gridHeight);
 
+    // Draw grayscale explicitly based on ARV from EGFMap
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+            const arv = EGFMap[y][x];  // explicitly use EGFMap ARV values
+            const normalized = (arv + 10) / 20; // explicitly normalize -10..+10 ARV to 0..1
+            const shade = Math.floor(normalized * 255);
+            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+    }
+
+    // Then explicitly draw gridlines on top
     ctx.strokeStyle = gridLineColors.EGF || '#CCCCCC';
+    ctx.lineWidth = 1;
 
     for (let x = 0; x <= gridWidth; x++) {
         ctx.beginPath();
