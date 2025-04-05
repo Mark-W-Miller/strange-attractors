@@ -7,25 +7,18 @@ let gridConfig;
 let EGFMap = [];
 let TerrainMap = [];
 
-
-// canvas.js
 fetch('../data/gridConfig.json')
     .then(response => response.json())
     .then(async (config) => {
         gridConfig = config;
         DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
-        initCanvas();
-
-        // Explicitly import eventHandlers after gridConfig is loaded:
         await import('./eventHandlers.js');
-        
-        // Now attach resize explicitly after handlers loaded
+        initCanvas();
         window.addEventListener('resize', handleResize);
     })
     .catch(err => console.error('Failed to load gridConfig:', err));
 
 export function redrawCanvas() {
-    DB(DB.RND, "Redrawing explicitly all visible layers.");
     layers.forEach(layer => {
         const canvas = document.getElementById(`canvas-${layer}`);
         if (canvas && canvas.style.display !== 'none') {
@@ -55,62 +48,83 @@ function drawLayer(layer) {
 }
 
 function drawEGF(ctx, width, height) {
-    const { gridWidth, gridHeight } = gridConfig;
-    const cellWidth = width / gridWidth;
-    const cellHeight = height / gridHeight;
+    const { gridWidth, gridHeight, gridLineColors } = gridConfig;
+    const cellSize = Math.min(width / gridWidth, height / gridHeight);
 
-    for (let y = 0; y < gridHeight; y++) {
-        for (let x = 0; x < gridWidth; x++) {
-            const arv = EGFMap[y][x];
-            const normalized = (arv + 10) / 20;
-            const shade = Math.floor(255 * normalized);
-            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
-            ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-        }
+    ctx.strokeStyle = gridLineColors.EGF || '#CCCCCC';
+
+    for (let x = 0; x <= gridWidth; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * cellSize, 0);
+        ctx.lineTo(x * cellSize, gridHeight * cellSize);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y <= gridHeight; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * cellSize);
+        ctx.lineTo(gridWidth * cellSize, y * cellSize);
+        ctx.stroke();
     }
 }
 
 function drawTerrain(ctx, width, height) {
-    const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity } = gridConfig;
+    const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity, gridLineColors } = gridConfig;
     const terrainGridWidth = gridWidth / terrainScaleFactor;
     const terrainGridHeight = gridHeight / terrainScaleFactor;
-    const cellWidth = width / terrainGridWidth;
-    const cellHeight = height / terrainGridHeight;
+    const cellSize = Math.min(width / terrainGridWidth, height / terrainGridHeight);
 
     ctx.fillStyle = `rgba(139,69,19,${terrainOpacity})`;
+    ctx.strokeStyle = gridLineColors.Terrain || '#AAAAAA';
+    ctx.lineWidth = 5; // <-- explicitly set desired thickness here
 
     for (let y = 0; y < terrainGridHeight; y++) {
         for (let x = 0; x < terrainGridWidth; x++) {
-            ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
     }
 }
 
 function drawAUTs(ctx, width, height) {
+    const cellSize = Math.min(width, height) / Math.max(gridConfig.gridWidth, gridConfig.gridHeight);
+
     ctx.fillStyle = 'rgba(0,128,255,0.7)';
     ctx.beginPath();
-    ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2);
+    ctx.arc(width / 2, height / 2, cellSize / 2, 0, Math.PI * 2);
     ctx.fill();
 }
 
-// Explicit resize handler
+// Resize explicitly to maintain perfect square grid cells
 function handleResize() {
     const container = document.getElementById('gameCanvas');
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const availableWidth = container.clientWidth;
+    const availableHeight = container.clientHeight;
+
+    const totalGridWidth = gridConfig.gridWidth;
+    const totalGridHeight = gridConfig.gridHeight;
+    const cellSize = Math.min(
+        availableWidth / totalGridWidth,
+        availableHeight / totalGridHeight
+    );
+
+    const canvasWidth = cellSize * totalGridWidth;
+    const canvasHeight = cellSize * totalGridHeight;
 
     layers.forEach(layer => {
         const canvas = document.getElementById(`canvas-${layer}`);
         if (canvas) {
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            canvas.style.position = 'absolute';
+            canvas.style.left = `${(availableWidth - canvasWidth) / 2}px`;
+            canvas.style.top = `${(availableHeight - canvasHeight) / 2}px`;
         }
     });
 
     redrawCanvas();
 }
 
-// Explicit initialization after config loads
 function initCanvas() {
     handleResize();
     redrawCanvas();

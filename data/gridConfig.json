@@ -1,5 +1,5 @@
 {
-  "gridWidth": 20,
+  "gridWidth": 40,
   "gridHeight": 20,
   "terrainScaleFactor": 2,
   "terrainOpacity": 0.5,
