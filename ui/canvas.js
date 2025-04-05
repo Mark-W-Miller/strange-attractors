@@ -3,7 +3,7 @@ import { RenderEngine } from './render/renderEngine.js';
 import { GridManager } from './render/gridManager.js';
 import { initTerrainEditor, handleTerrainMouseEvents } from './editors/terrainEditor.js';
 import { handleEGFMouseEvents } from './editors/egfEditor.js';
-import { Debug, DB } from '../debug/DB.js';
+import { DB } from '../debug/DB.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -15,11 +15,11 @@ let massEditRadius = 0;
 const layerSelect = document.getElementById('layerSelect');
 layerSelect.addEventListener('change', (e) => {
     activeLayer = e.target.value;
-    Debug.log(DB.MSE, 'Layer changed to:', activeLayer);
+    DB(DB.MSE, 'Layer changed to:', activeLayer);
 });
 
 async function loadGridConfig() {
-    Debug.log(DB.RND, 'Loading grid configuration');
+    DB(DB.RND, 'Loading grid configuration');
     const response = await fetch('data/gridConfig.json');
     gridConfig = await response.json();
 
@@ -53,7 +53,7 @@ async function loadGridConfig() {
 }
 
 function resizeCanvas() {
-    Debug.log(DB.RND, 'Resizing canvas', { width: canvas.clientWidth, height: canvas.clientHeight });
+    DB(DB.RND, 'Resizing canvas', { width: canvas.clientWidth, height: canvas.clientHeight });
 
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
@@ -74,7 +74,7 @@ function resizeCanvas() {
 }
 
 function renderCanvas() {
-    Debug.log(DB.RND, 'Rendering canvas', { cellSize, offsetX, offsetY });
+    DB(DB.RND, 'Rendering canvas', { cellSize, offsetX, offsetY });
 
     renderEngine.renderFull(cellSize, offsetX, offsetY);
     renderCursor();
@@ -109,7 +109,7 @@ function renderCursor() {
     }
 
     ctx.restore();
-    Debug.log(DB.RND, 'Rendered cursor at', mousePos);
+    DB(DB.RND, 'Rendered cursor at', mousePos);
 }
 
 function delegateMouseEvent(type, event) {

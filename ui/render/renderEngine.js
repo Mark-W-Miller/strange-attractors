@@ -1,9 +1,9 @@
 import { CanvasLayer } from './canvasLayers.js';
-import { Debug, DB } from '../../debug/DB.js';
+import { DB } from '../../debug/DB.js';
 
 export class RenderEngine {
   constructor(mainCanvas, gridConfig, egf, terrainGrid, terrainImages) {
-    Debug.log(DB.RND, 'Constructor called', { gridConfig });
+    DB(DB.RND, 'Constructor called', { gridConfig });
 
     this.mainCanvas = mainCanvas;
     this.ctx = mainCanvas.getContext('2d');
@@ -18,7 +18,7 @@ export class RenderEngine {
   }
 
   resize(width, height) {
-    Debug.log(DB.RND, 'Resizing layers', { width, height });
+    DB(DB.RND, 'Resizing layers', { width, height });
 
     this.egfLayer.canvas.width = width;
     this.egfLayer.canvas.height = height;
@@ -27,7 +27,7 @@ export class RenderEngine {
   }
 
   renderFull(cellSize, offsetX, offsetY) {
-    Debug.log(DB.RND, 'Rendering full canvas', { cellSize, offsetX, offsetY });
+    DB(DB.RND, 'Rendering full canvas', { cellSize, offsetX, offsetY });
 
     this.renderEGFLayer(cellSize, offsetX, offsetY);
     this.renderTerrainLayer(cellSize, offsetX, offsetY);
@@ -35,7 +35,7 @@ export class RenderEngine {
   }
 
   renderDirty(dirtyCells, cellSize, offsetX, offsetY) {
-    Debug.log(DB.RND, 'Rendering dirty cells', { dirtyCells });
+    DB(DB.RND, 'Rendering dirty cells', { dirtyCells });
 
     dirtyCells.forEach(([i, j]) => {
       this.renderEGFCell(i, j, cellSize, offsetX, offsetY);
@@ -48,7 +48,7 @@ export class RenderEngine {
   }
 
   renderEGFLayer(cellSize, offsetX, offsetY) {
-    Debug.log(DB.RND_EGF, 'Rendering EGF Layer');
+    DB(DB.RND_EGF, 'Rendering EGF Layer');
     this.egfLayer.clear();
 
     for (let i = 0; i < this.egf.width; i++) {
@@ -63,7 +63,7 @@ export class RenderEngine {
     const brightness = 1 - (arv / 32);
     const colorValue = Math.floor(255 * brightness);
 
-    Debug.log(DB.RND_EGF, `EGF Cell [${i},${j}]`, { arv, brightness, colorValue });
+    DB(DB.RND_EGF, `EGF Cell [${i},${j}]`, { arv, brightness, colorValue });
 
     this.egfLayer.ctx.fillStyle = `rgb(${colorValue},${colorValue},${colorValue})`;
     const x = offsetX + i * cellSize;
@@ -76,7 +76,7 @@ export class RenderEngine {
 }
 
   renderTerrainLayer(cellSize, offsetX, offsetY) {
-    Debug.log(DB.RND_TERR, 'Rendering Terrain Layer');
+    DB(DB.RND_TERR, 'Rendering Terrain Layer');
     this.terrainLayer.clear();
 
     for (let i = 0; i < this.terrainGrid.width; i++) {
@@ -93,7 +93,7 @@ export class RenderEngine {
     const x = offsetX + i * size;
     const y = offsetY + j * size;
 
-    Debug.log(DB.RND_TERR, `Terrain Cell [${i},${j}]`, { type, size, x, y });
+    DB(DB.RND_TERR, `Terrain Cell [${i},${j}]`, { type, size, x, y });
 
     if (img.complete) {
         this.terrainLayer.ctx.globalAlpha = this.gridConfig.terrainOpacity;
@@ -114,7 +114,7 @@ export class RenderEngine {
 }
 
   combineLayers() {
-    Debug.log(DB.RND, 'Combining layers');
+    DB(DB.RND, 'Combining layers');
 
     this.ctx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
     this.ctx.drawImage(this.egfLayer.getCanvas(), 0, 0);

@@ -1,4 +1,4 @@
-import { Debug, DB } from '../../debug/DB.js';
+import { DB } from '../../debug/DB.js';
 
 let mouseIsDown = false;
 let mouseButton = null;
@@ -14,7 +14,7 @@ export function handleEGFMouseEvents(type, event, canvas, egf, cellSize, offsetX
     const j = Math.floor((mouseY - offsetY) / cellSize);
     const cellKey = `${i},${j}`;
 
-    Debug.log(DB.MSE, `EGF Mouse event: ${type}`, {mouseX, mouseY, i, j, cellKey});
+    DB(DB.MSE, `EGF Mouse event: ${type}`, {mouseX, mouseY, i, j, cellKey});
 
     switch (type) {
         case 'mousedown':
@@ -60,7 +60,7 @@ function applyMassEdit(centerI, centerJ, egf, button) {
     const brushShapeSelect = document.getElementById('brushShape');
     const shape = brushShapeSelect.value;
 
-    Debug.log(DB.MSE, `Applying mass edit:`, {centerI, centerJ, shape, button});
+    DB(DB.MSE, `Applying mass edit:`, {centerI, centerJ, shape, button});
 
     for (let di = -massEditRadius; di <= massEditRadius; di++) {
         for (let dj = -massEditRadius; dj <= massEditRadius; dj++) {
@@ -77,7 +77,7 @@ function applyMassEdit(centerI, centerJ, egf, button) {
                 if (egf.isValidCell(i, j)) {
                     const currentARV = egf.getARV(i, j);
                     const newARV = button === 0 ? currentARV - 1 : currentARV + 1;
-                    Debug.log(DB.MSE, `EGF cell updated: (${i},${j})`, {currentARV, newARV});
+                    DB(DB.MSE, `EGF cell updated: (${i},${j})`, {currentARV, newARV});
                     egf.setARV(i, j, newARV);
                 }
             }
@@ -88,7 +88,7 @@ function applyMassEdit(centerI, centerJ, egf, button) {
 export function renderEGF(ctx, egf, gridConfig, cellSize, offsetX, offsetY) {
     const brushShapeSelect = document.getElementById('brushShape');
 
-    Debug.log(DB.RND_EGF, 'Rendering EGF');
+    DB(DB.RND_EGF, 'Rendering EGF');
 
     for (let i = 0; i < gridConfig.gridWidth; i++) {
         for (let j = 0; j < gridConfig.gridHeight; j++) {
@@ -117,7 +117,7 @@ export function renderEGF(ctx, egf, gridConfig, cellSize, offsetX, offsetY) {
             );
         }
 
-        Debug.log(DB.RND_EGF, 'Rendered brush shape', {shape: brushShapeSelect.value, mousePos, massEditRadius});
+        DB(DB.RND_EGF, 'Rendered brush shape', {shape: brushShapeSelect.value, mousePos, massEditRadius});
     }
 }
 
@@ -126,7 +126,7 @@ function arvColor(arv) {
     const normalizedGrey = Math.floor(((greyValue + 16) / 32) * 255);
     const color = `rgb(${normalizedGrey},${normalizedGrey},${normalizedGrey})`;
 
-    Debug.log(DB.RND_EGF, 'Computed ARV color:', {arv, color});
+    DB(DB.RND_EGF, 'Computed ARV color:', {arv, color});
 
     return color;
 }
