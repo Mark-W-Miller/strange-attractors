@@ -1,11 +1,25 @@
-// ui/layersVisibleCheckboxes.js
+import { DB } from '../debug/DB.js';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
-const layersVisible = new Set(['EGF', 'Terrain', 'AUT']); // explicitly initially selected layers
+const layersVisible = new Set(['EGF', 'Terrain']); // Initially: AUT not selected
 
 const container = document.getElementById('layersVisibleCheckboxes');
 
+function setLayerVisibility(layer, isVisible) {
+    DB(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
+    
+    // Explicitly handle canvas visibility
+    const canvas = document.getElementById(`canvas-${layer}`);
+    if (canvas) {
+        canvas.style.display = isVisible ? 'block' : 'none';
+    } else {
+        DB(DB.RND, `Canvas not found explicitly for layer: ${layer}`);
+    }
+}
+
 function createLayerCheckboxes() {
+    container.innerHTML = ''; // explicitly clear existing checkboxes first
+
     layers.forEach(layer => {
         const label = document.createElement('label');
 
@@ -15,19 +29,19 @@ function createLayerCheckboxes() {
         checkbox.id = `layer-checkbox-${layer}`;
 
         checkbox.onchange = () => {
-            if (checkbox.checked) {
-                layersVisible.add(layer);
-            } else {
-                layersVisible.delete(layer);
-            }
-            // Explicitly add your visibility toggle function here
-            console.log(`Layer ${layer} visibility:`, checkbox.checked);
+            checkbox.checked
+                ? layersVisible.add(layer)
+                : layersVisible.delete(layer);
+            setLayerVisibility(layer, checkbox.checked);
+            redrawCanvas(); // Explicitly redraw canvas on visibility change
         };
 
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(layer));
 
         container.appendChild(label);
+
+        setLayerVisibility(layer, checkbox.checked);
     });
 }
 

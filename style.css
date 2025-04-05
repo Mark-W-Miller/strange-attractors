@@ -134,3 +134,14 @@ label {
     margin: 0 6px 0 0 !important;
     flex-shrink: 0;
 }
+
+#canvas-EGF,
+#canvas-Terrain,
+#canvas-AUT {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#gameCanvas {
+    position: relative; /* explicit parent position */
+}
