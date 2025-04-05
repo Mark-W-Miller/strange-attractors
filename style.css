@@ -64,3 +64,40 @@ label {
 #addAutBtn:hover {
     background-color: #8a6e45;
 }
+
+/* Debug checkbox container explicitly positioned at right of control bar */
+.debug-checkbox-container {
+    width: 160px;
+    max-height: 90px; /* Exactly 4 items visible */
+    overflow-y: auto;
+    background: rgba(30,30,30,0.95);
+    color: white;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 12px;
+    margin-left: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.debug-checkbox-container strong {
+    display: block;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+/* Explicit correction to ensure checkbox and label are horizontally aligned */
+.checkbox-list label {
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    white-space: nowrap !important;
+    cursor: pointer;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.checkbox-list input[type=checkbox] {
+    margin: 0 6px 0 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+}
