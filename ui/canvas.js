@@ -5,6 +5,7 @@ const layers = ['EGF', 'Terrain', 'AUT'];
 
 
 // canvas.js
+// canvas.js
 export let gridConfig;
 export let EGFMap = [];
 export let TerrainMap = [];
@@ -14,9 +15,11 @@ fetch('../data/gridConfig.json')
     .then(async (config) => {
         gridConfig = config;
         
-        await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap); // explicitly await
+        await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
         
-        await import('./eventHandlers.js'); // explicitly import AFTER initialization
+        const handlersModule = await import('./eventHandlers.js');
+        handlersModule.setupEventHandlers(); // explicitly set handlers now
+        
         initCanvas();
         window.addEventListener('resize', handleResize);
     })
