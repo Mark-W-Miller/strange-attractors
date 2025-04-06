@@ -129,12 +129,15 @@ function drawTerrain(ctx, width, height) {
 }
 
 function drawAUTs(ctx, width, height) {
-    const cellSize = Math.min(width, height) / Math.max(gridConfig.gridWidth, gridConfig.gridHeight);
+    ctx.clearRect(0, 0, width, height);
 
-    ctx.fillStyle = 'rgba(0,128,255,0.7)';
+    // Explicit test-dot drawing:
+    ctx.fillStyle = 'blue';
     ctx.beginPath();
-    ctx.arc(width / 2, height / 2, cellSize / 2, 0, Math.PI * 2);
+    ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2); // centered blue dot
     ctx.fill();
+
+    DB(DB.UI, 'AUT Canvas explicitly drawn with test blue dot.');
 }
 
 // Resize explicitly to maintain perfect square grid cells

@@ -10,6 +10,14 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
 
     const getCurrentEditMode = () => document.getElementById('layerSelect').value;
 
+    const brushShapeSelect = document.getElementById('brushShape');
+
+    brushShapeSelect.addEventListener('change', (e) => {
+        selectedBrushShape = e.target.value; 
+        DB(DB.UI, `Brush shape explicitly changed to ${selectedBrushShape}`);
+    });
+
+
     gameCanvas.addEventListener('mousedown', (e) => {
         e.preventDefault();
         isMouseDown = true;
@@ -19,25 +27,26 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
     gameCanvas.addEventListener('mouseup', () => {
         isMouseDown = false;
     });
+    
+    gameCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault(); // prevent page scroll
+        cursorSize += Math.sign(e.deltaY); // increase or decrease cursor size explicitly
+        cursorSize = Math.max(1, Math.min(cursorSize, 50)); // clamp size explicitly between 1 and 50
+        DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
+    });
 
     gameCanvas.addEventListener('mousemove', (e) => {
         const canvasAUT = document.getElementById('canvas-AUT');
-        const rect = gameCanvas.getBoundingClientRect();
-    
-        // explicitly match AUT canvas pixel dimensions to visible dimensions
-        canvasAUT.width = rect.width;
-        canvasAUT.height = rect.height;
-    
         const ctx = canvasAUT.getContext('2d');
-    
+        const rect = canvasAUT.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-    
-        ctx.clearRect(0, 0, canvasAUT.width, canvasAUT.height);
-    
+
+        redrawCanvas();
+
         ctx.strokeStyle = 'rgba(0,0,0,0.8)';
         ctx.lineWidth = 1;
-    
+
         if (selectedBrushShape === 'circle') {
             ctx.beginPath();
             ctx.arc(x, y, cursorSize, 0, Math.PI * 2);
@@ -45,14 +54,14 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         } else if (selectedBrushShape === 'square') {
             ctx.strokeRect(x - cursorSize / 2, y - cursorSize / 2, cursorSize, cursorSize);
         }
-    
-        DB(DB.MSE_MOVED, `Cursor explicitly at (${x}, ${y})`);
-    
+
+        DB(DB.MSE_MOVED, `Cursor MOVE (${x}, ${y})` + selectedBrushShape);
+
         if (isMouseDown) {
             let buttonType = null;
             if (e.buttons & 1) buttonType = 0;
             else if (e.buttons & 2) buttonType = 2;
-    
+
             if (buttonType !== null) {
                 handleEditAt(e, buttonType);
             }
