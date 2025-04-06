@@ -1,133 +1,89 @@
 import { DB } from '../../debug/DB.js';
+import { selectedBrushShape, cursorSize } from '../eventHandlers.js'
+import { redrawCanvas, gridConfig, EGFMap } from '../canvas.js';
 
-let mouseIsDown = false;
-let mouseButton = null;
-let lastCellKey = null;
-let massEditRadius = 0;
-let mousePos = null;
 
-export function handleEGFMouseEvents(type, event, canvas, egf, cellSize, offsetX, offsetY, renderCanvas) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const i = Math.floor((mouseX - offsetX) / cellSize);
-    const j = Math.floor((mouseY - offsetY) / cellSize);
-    const cellKey = `${i},${j}`;
+// let mouseIsDown = false;
+// let mouseButton = null;
+// let lastCellKey = null;
+// let massEditRadius = 0;
+// let mousePos = null;
 
-    DB(DB.MSE, `EGF Mouse event: ${type}`, {mouseX, mouseY, i, j, cellKey});
+export function handleEditEGF(e, buttonType) {
+    const canvasEGF = document.getElementById('canvas-EGF');
+    const rect = canvasEGF.getBoundingClientRect();
+    const cellWidth = rect.width / gridConfig.gridWidth;
+    const cellHeight = rect.height / gridConfig.gridHeight;
 
-    switch (type) {
-        case 'mousedown':
-            mouseIsDown = true;
-            mouseButton = event.button;
-            applyMassEdit(i, j, egf, mouseButton);
-            renderCanvas();
-            break;
+    const centerX = Math.floor((e.clientX - rect.left) / cellWidth);
+    const centerY = Math.floor((e.clientY - rect.top) / cellHeight);
 
-        case 'mouseup':
-            mouseIsDown = false;
-            lastCellKey = null;
-            renderCanvas();
-            break;
+    // Adjust radius calculation to handle small cursor sizes
+    const radius = Math.max(0, Math.floor(cursorSize / Math.min(cellWidth, cellHeight) / 2));
 
-        case 'mousemove':
-            if (mouseIsDown && cellKey !== lastCellKey) {
-                applyMassEdit(i, j, egf, mouseButton);
-                lastCellKey = cellKey;
-                renderCanvas();
-            }
-            break;
-
-        case 'wheel':
-            if (!mouseIsDown) {
-                event.preventDefault();
-                massEditRadius += (event.deltaY < 0 ? 6 : -6);
-                massEditRadius = Math.max(0, massEditRadius);
-                cursorSize = massEditRadius ;
-                renderCanvas();
-            }
-            break;
-
-        case 'mouseleave':
-            mouseIsDown = false;
-            lastCellKey = null;
-            mousePos = null;
-            renderCanvas();
-            break;
-    }
-}
-
-function applyMassEdit(centerI, centerJ, egf, button) {
-    const brushShapeSelect = document.getElementById('brushShape');
-    const shape = brushShapeSelect.value;
-
-    DB(DB.MSE, `Applying mass edit:`, {centerI, centerJ, shape, button});
-
-    for (let di = -massEditRadius; di <= massEditRadius; di++) {
-        for (let dj = -massEditRadius; dj <= massEditRadius; dj++) {
-            let applyChange = false;
-            if (shape === 'circle') {
-                applyChange = (di ** 2 + dj ** 2 <= massEditRadius ** 2);
-            } else if (shape === 'square') {
-                applyChange = true;
-            }
-
-            if (applyChange) {
-                const i = centerI + di;
-                const j = centerJ + dj;
-                if (egf.isValidCell(i, j)) {
-                    const currentARV = egf.getARV(i, j);
-                    const newARV = button === 0 ? currentARV - 1 : currentARV + 1;
-                    DB(DB.MSE, `EGF cell updated: (${i},${j})`, {currentARV, newARV});
-                    egf.setARV(i, j, newARV);
+    for (let y = centerY - radius; y <= centerY + radius; y++) {
+        for (let x = centerX - radius; x <= centerX + radius; x++) {
+            if (y >= 0 && y < gridConfig.gridHeight && x >= 0 && x < gridConfig.gridWidth) {
+                if (!EGFMap[y]) {
+                    DB(DB.MSE, `EGF row ${y} explicitly not initialized.`);
+                    continue;
                 }
+
+                // Square brush logic: Ensure only cells within the square are edited
+                if (selectedBrushShape === 'square') {
+                    const withinSquare = Math.abs(x - centerX) <= radius && Math.abs(y - centerY) <= radius;
+                    if (!withinSquare) continue;
+                }
+
+                // Circle brush logic: Ensure only cells within the circle are edited
+                if (selectedBrushShape === 'circle') {
+                    const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                    if (distance > radius) continue;
+                }
+
+                if (buttonType === 0) {
+                    EGFMap[y][x] = Math.max(-10, EGFMap[y][x] - 1);
+                } else if (buttonType === 2) {
+                    EGFMap[y][x] = Math.min(10, EGFMap[y][x] + 1);
+                }
+
+                DB(DB.MSE, `Edited EGF at (${x}, ${y}) to ${EGFMap[y][x]}`);
             }
         }
     }
+    redrawCanvas();
 }
 
-export function renderEGF(ctx, egf, gridConfig, cellSize, offsetX, offsetY) {
-    const brushShapeSelect = document.getElementById('brushShape');
+export function drawEGF(ctx, width, height) {
+    const { gridWidth, gridHeight, gridLineColors } = gridConfig;
+    const cellSize = Math.min(width / gridWidth, height / gridHeight);
 
-    DB(DB.RND_EGF, 'Rendering EGF');
-
-    for (let i = 0; i < gridConfig.gridWidth; i++) {
-        for (let j = 0; j < gridConfig.gridHeight; j++) {
-            const arv = egf.getARV(i, j);
-            ctx.fillStyle = arvColor(arv);
-            ctx.fillRect(offsetX + i * cellSize, offsetY + j * cellSize, cellSize, cellSize);
-            ctx.strokeStyle = "#e0d0c0";
-            ctx.strokeRect(offsetX + i * cellSize, offsetY + j * cellSize, cellSize, cellSize);
+    // Draw grayscale explicitly based on ARV from EGFMap
+    for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+            const arv = EGFMap[y][x];  // explicitly use EGFMap ARV values
+            const normalized = (arv + 10) / 20; // explicitly normalize -10..+10 ARV to 0..1
+            const shade = Math.floor(normalized * 255);
+            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
     }
 
-    if (mousePos) {
-        ctx.strokeStyle = "rgba(255,0,0,0.6)";
-        ctx.lineWidth = 2;
+    // Then explicitly draw gridlines on top
+    ctx.strokeStyle = gridLineColors.EGF || '#CCCCCC';
+    ctx.lineWidth = 1;
 
-        if (brushShapeSelect.value === 'circle') {
-            ctx.beginPath();
-            ctx.arc(mousePos.x, mousePos.y, massEditRadius * cellSize + cellSize / 2, 0, 2 * Math.PI);
-            ctx.stroke();
-        } else if (brushShapeSelect.value === 'square') {
-            ctx.strokeRect(
-                mousePos.x - (massEditRadius + 0.5) * cellSize,
-                mousePos.y - (massEditRadius + 0.5) * cellSize,
-                (massEditRadius * 2 + 1) * cellSize,
-                (massEditRadius * 2 + 1) * cellSize
-            );
-        }
-
-        DB(DB.RND_EGF, 'Rendered brush shape', {shape: brushShapeSelect.value, mousePos, massEditRadius});
+    for (let x = 0; x <= gridWidth; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * cellSize, 0);
+        ctx.lineTo(x * cellSize, gridHeight * cellSize);
+        ctx.stroke();
     }
-}
 
-function arvColor(arv) {
-    const greyValue = Math.max(-16, Math.min(16, arv));
-    const normalizedGrey = Math.floor(((greyValue + 16) / 32) * 255);
-    const color = `rgb(${normalizedGrey},${normalizedGrey},${normalizedGrey})`;
-
-    DB(DB.RND_EGF, 'Computed ARV color:', {arv, color});
-
-    return color;
+    for (let y = 0; y <= gridHeight; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * cellSize);
+        ctx.lineTo(gridWidth * cellSize, y * cellSize);
+        ctx.stroke();
+    }
 }

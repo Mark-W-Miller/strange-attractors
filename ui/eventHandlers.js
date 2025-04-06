@@ -1,12 +1,15 @@
 // ui/eventHandlers.js
-import { redrawCanvas, gridConfig, EGFMap } from './canvas.js';
 import { DB } from '../debug/DB.js';
+import { handleEditEGF } from './editors/egfEditor.js';
+import { handleEditTerrain } from './editors/terrainEditor.js';
+
+
+export let selectedBrushShape = 'circle';
+export let cursorSize = 20;
+export let isMouseDown = false;
 
 export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanvas }) {
     const gameCanvas = document.getElementById('gameCanvas');
-    let selectedBrushShape = 'circle';
-    let cursorSize = 20;
-    let isMouseDown = false;
 
     const getCurrentEditMode = () => document.getElementById('layerSelect').value;
 
@@ -24,23 +27,36 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         handleEditAt(e, e.button);
     });
 
+    function handleEditAt(e, buttonType) {
+        const editMode = getCurrentEditMode();
+
+        if (editMode === 'EGF') {
+            handleEditEGF(e, buttonType);
+        } else if (editMode === 'Terrain') {
+            handleEditTerrain(e, buttonType);
+        } else {
+            DB(DB.MSE, `Unsupported edit mode: ${editMode}`);
+        }
+    }
+
+
     gameCanvas.addEventListener('mouseup', () => {
         isMouseDown = false;
     });
 
-    // gameCanvas.addEventListener('wheel', (e) => {
-    //     e.preventDefault();
-    //     cursorSize += Math.sign(e.deltaY) * 6;
-    //     cursorSize = Math.max(1, Math.min(cursorSize, 500));
-    //     DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
+    gameCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        cursorSize += Math.sign(e.deltaY) * 6;
+        cursorSize = Math.max(1, Math.min(cursorSize, 500));
+        DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
     
-    //     // Immediately redraw cursor after size change
-    //     const event = new MouseEvent('mousemove', {
-    //         clientX: e.clientX,
-    //         clientY: e.clientY
-    //     });
-    //     gameCanvas.dispatchEvent(event);
-    // });
+        // Immediately redraw cursor after size change
+        const event = new MouseEvent('mousemove', {
+            clientX: e.clientX,
+            clientY: e.clientY
+        });
+        gameCanvas.dispatchEvent(event);
+    });
 
     gameCanvas.addEventListener('mousemove', (e) => {
         const canvasAUT = document.getElementById('canvas-AUT');
@@ -77,76 +93,4 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
 
     gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
-    function handleEditAt(e, buttonType) {
-        const editMode = getCurrentEditMode();
-
-        if (editMode === 'EGF') {
-            handleEditEGF(e, buttonType);
-        } else if (editMode === 'Terrain') {
-            handleEditTerrain(e, buttonType);
-        } else {
-            DB(DB.MSE, `Unsupported edit mode: ${editMode}`);
-        }
-    }
-
-    function handleEditEGF(e, buttonType) {
-        const canvasEGF = document.getElementById('canvas-EGF');
-        const rect = canvasEGF.getBoundingClientRect();
-        const cellWidth = rect.width / gridConfig.gridWidth;
-        const cellHeight = rect.height / gridConfig.gridHeight;
-
-        const x = Math.floor((e.clientX - rect.left) / cellWidth);
-        const y = Math.floor((e.clientY - rect.top) / cellHeight);
-
-        if (y >= 0 && y < gridConfig.gridHeight && x >= 0 && x < gridConfig.gridWidth) {
-            if (!EGFMap[y]) {
-                DB(DB.MSE, `EGF row ${y} explicitly not initialized.`);
-                return;
-            }
-
-            if (buttonType === 0) {
-                EGFMap[y][x] = Math.max(-10, EGFMap[y][x] - 1);
-                DB(DB.MSE, `Left-click decreased EGF at (${x}, ${y}) to ${EGFMap[y][x]}`);
-            } else if (buttonType === 2) {
-                EGFMap[y][x] = Math.min(10, EGFMap[y][x] + 1);
-                DB(DB.MSE, `Right-click increased EGF at (${x}, ${y}) to ${EGFMap[y][x]}`);
-            }
-
-            redrawCanvas();
-        } else {
-            DB(DB.MSE, `Out of bounds edit explicitly at (${x}, ${y})`);
-        }
-    }
-
-    function handleEditTerrain(e, buttonType) {
-        if (buttonType !== 0) return;
-    
-        const terrainTypeSelect = document.getElementById('terrainType');
-        const selectedTerrainType = terrainTypeSelect.value;  // explicitly use current selection
-    
-        const terrainGridWidth = gridConfig.gridWidth / gridConfig.terrainScaleFactor;
-        const terrainGridHeight = gridConfig.gridHeight / gridConfig.terrainScaleFactor;
-    
-        const canvasTerrain = document.getElementById('canvas-Terrain');
-        const rect = canvasTerrain.getBoundingClientRect();
-        const cellWidth = rect.width / terrainGridWidth;
-        const cellHeight = rect.height / terrainGridHeight;
-    
-        const x = Math.floor((e.clientX - rect.left) / cellWidth);
-        const y = Math.floor((e.clientY - rect.top) / cellHeight);
-    
-        if (y >= 0 && y < terrainGridHeight && x >= 0 && x < terrainGridWidth) {
-            if (!TerrainMap[y]) {
-                DB(DB.MSE, `Terrain row ${y} explicitly not initialized.`);
-                return;
-            }
-    
-            TerrainMap[y][x] = selectedTerrainType;  // explicitly use selected type
-    
-            DB(DB.MSE, `Edited Terrain explicitly at (${x}, ${y}) with ${selectedTerrainType}`);
-            redrawCanvas();
-        } else {
-            DB(DB.MSE, `Out of bounds edit explicitly at (${x}, ${y})`);
-        }
-    }
 }

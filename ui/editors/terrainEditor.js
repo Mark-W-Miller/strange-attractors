@@ -1,4 +1,8 @@
+import { DB } from '../../debug/DB.js';
 import { TerrainGrid } from '../../logic/grid.js';
+import { selectedBrushShape, cursorSize } from '../eventHandlers.js'
+import { redrawCanvas, gridConfig } from '../canvas.js';
+import {TerrainMap,terrainImages} from '../canvas.js';
 
 let mouseIsDown = false, mouseButton, lastCellKey, massEditRadius = 0;
 let mousePos = null, terrainGrid, terrainTypeSelect, brushShapeSelect;
@@ -9,77 +13,84 @@ export function initTerrainEditor(config) {
     brushShapeSelect = document.getElementById('brushShape');
 }
 
-export function handleTerrainMouseEvents(type, event, canvas, cellSize, offsetX, offsetY, renderCanvas) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const i = Math.floor((mouseX - offsetX) / cellSize);
-    const j = Math.floor((mouseY - offsetY) / cellSize);
-    const cellKey = `${i},${j}`;
+export function handleEditTerrain(e, buttonType) {
+    if (buttonType !== 0) return;
 
-    if (type === 'mousedown') {
-        mouseIsDown = true;
-        mouseButton = event.button;
-        applyTerrainEdit(i, j);
-        renderCanvas();
-    } else if (type === 'mouseup') {
-        mouseIsDown = false;
-        lastCellKey = null;
-    } else if (type === 'mousemove') {
-        mousePos = { x: mouseX, y: mouseY };
-        if (mouseIsDown && cellKey !== lastCellKey) {
-            applyTerrainEdit(i, j);
-            lastCellKey = cellKey;
+    const terrainTypeSelect = document.getElementById('terrainType');
+    const selectedTerrainType = terrainTypeSelect.value;
+
+    const terrainGridWidth = gridConfig.gridWidth / gridConfig.terrainScaleFactor;
+    const terrainGridHeight = gridConfig.gridHeight / gridConfig.terrainScaleFactor;
+
+    const canvasTerrain = document.getElementById('canvas-Terrain');
+    const rect = canvasTerrain.getBoundingClientRect();
+    const cellWidth = rect.width / terrainGridWidth;
+    const cellHeight = rect.height / terrainGridHeight;
+
+    const centerX = Math.floor((e.clientX - rect.left) / cellWidth);
+    const centerY = Math.floor((e.clientY - rect.top) / cellHeight);
+
+    // Adjust radius calculation to handle small cursor sizes
+    const radius = Math.max(0, Math.floor(cursorSize / Math.min(cellWidth, cellHeight) / 2));
+
+    for (let y = centerY - radius; y <= centerY + radius; y++) {
+        for (let x = centerX - radius; x <= centerX + radius; x++) {
+            if (y >= 0 && y < terrainGridHeight && x >= 0 && x < terrainGridWidth) {
+                if (!TerrainMap[y]) {
+                    DB(DB.MSE, `Terrain row ${y} explicitly not initialized.`);
+                    continue;
+                }
+
+                // Square brush logic: Ensure only cells within the square are edited
+                if (selectedBrushShape === 'square') {
+                    const withinSquare = Math.abs(x - centerX) <= radius && Math.abs(y - centerY) <= radius;
+                    if (!withinSquare) continue;
+                }
+
+                // Circle brush logic: Ensure only cells within the circle are edited
+                if (selectedBrushShape === 'circle') {
+                    const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                    if (distance > radius) continue;
+                }
+
+                TerrainMap[y][x] = selectedTerrainType;
+
+                DB(DB.MSE, `Edited Terrain at (${x}, ${y}) with ${selectedTerrainType}`);
+            }
         }
-        renderCanvas();
-    } else if (type === 'wheel' && !mouseIsDown) {
-        event.preventDefault();
-        massEditRadius = Math.max(0, massEditRadius + (event.deltaY < 0 ? 1 : -1));
-        renderCanvas();
-    } else if (type === 'mouseleave') {
-        mousePos = null;
-        renderCanvas();
     }
+
+    redrawCanvas();
 }
 
-function applyTerrainEdit(centerI, centerJ) {
-    const shape = brushShapeSelect.value;
-    const type = terrainTypeSelect.value;
 
-    for (let di = -massEditRadius; di <= massEditRadius; di++) {
-        for (let dj = -massEditRadius; dj <= massEditRadius; dj++) {
-            if (shape === 'circle' && (di ** 2 + dj ** 2 > massEditRadius ** 2)) continue;
+export function drawTerrain(ctx, width, height) {
+    const { gridWidth, terrainScaleFactor, terrainOpacity, gridLineColors } = gridConfig;
+    const terrainGridWidth = gridWidth / terrainScaleFactor;
+    const terrainGridHeight = TerrainMap.length;
+    const cellWidth = width / terrainGridWidth;
+    const cellHeight = height / terrainGridHeight;
 
-            const i = centerI + di, j = centerJ + dj;
-            terrainGrid.setTerrain(i, j, type);
+    ctx.strokeStyle = gridLineColors.Terrain || '#AAAAAA';
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = terrainOpacity;
+
+    for (let y = 0; y < terrainGridHeight; y++) {
+        for (let x = 0; x < terrainGridWidth; x++) {
+            const terrainType = TerrainMap[y][x] || 'flat';
+            const img = terrainImages[terrainType];
+
+            if (img.complete && img.naturalWidth !== 0) {
+                ctx.drawImage(img, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            } else {
+                // Draw fallback explicitly if image not loaded
+                ctx.fillStyle = 'rgba(200,200,200,0.5)';
+                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
+
+            ctx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
     }
-}
 
-export function renderTerrain(ctx, cellSize, offsetX, offsetY) {
-    for (let i = 0; i < terrainGrid.width; i++) {
-        for (let j = 0; j < terrainGrid.height; j++) {
-            const type = terrainGrid.getTerrain(i, j);
-            const img = new Image();
-            img.src = `images/terrain/${type}.png`;
-            img.onload = () => ctx.drawImage(img, offsetX + i * cellSize, offsetY + j * cellSize, cellSize, cellSize);
-        }
-    }
-
-    if (mousePos) {
-        ctx.strokeStyle = "rgba(0,100,255,0.6)";
-        ctx.lineWidth = 2;
-        if (brushShapeSelect.value === 'circle') {
-            ctx.beginPath();
-            ctx.arc(mousePos.x, mousePos.y, massEditRadius * cellSize + cellSize / 2, 0, 2 * Math.PI);
-            ctx.stroke();
-        } else {
-            ctx.strokeRect(
-                mousePos.x - (massEditRadius + 0.5) * cellSize,
-                mousePos.y - (massEditRadius + 0.5) * cellSize,
-                (massEditRadius * 2 + 1) * cellSize,
-                (massEditRadius * 2 + 1) * cellSize
-            );
-        }
-    }
+    ctx.globalAlpha = 1.0;
 }
