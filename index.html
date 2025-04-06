@@ -15,30 +15,42 @@
         <div id="gameCanvas"></div> <!-- explicitly a div -->
     </div>
     <div id="controlBar">
-        <div id="controlPanel">
-            <!-- Layers Visible menu explicitly moved left for global visibility -->
-            <div id="layersVisibleContainer" class="checkbox-container">
-                <strong>Layers Visible</strong>
-                <div id="layersVisibleCheckboxes" class="checkbox-list"></div>
-            </div>
-            <label>
+        <!-- LayerControl Section -->
+        <div id="layerControl" class="control-section">
+            <label for="layerSelect">
                 Edit Mode:
-                <select id="layerSelect">
+                <select id="layerSelect" name="layerSelect">
                     <option value="EGF">EGF</option>
                     <option value="Terrain">Terrain</option>
                     <option value="AUT">AUT</option>
                 </select>
             </label>
 
-            <label>
+            <div id="layersVisibleContainer" class="checkbox-container">
+                <strong>Layers Visible</strong>
+                <div id="layersVisibleCheckboxes" class="checkbox-list"></div>
+            </div>
+
+            <label for="brushShape">
                 Brush Shape:
                 <select id="brushShape">
                     <option value="circle">Circle Brush</option>
                     <option value="square">Square Brush</option>
                 </select>
             </label>
+        </div>
 
+        <!-- Dynamic Controls Section -->
+        <div id="dynamicControls" class="control-section">
+            <!-- EGF Controls -->
+            <div id="egfControls" style="display:none;">
+                <strong>EGF Controls</strong>
+                <p>No controls available yet.</p>
+            </div>
+
+            <!-- Terrain Controls -->
             <div id="terrainControls" style="display:none;">
+                <strong class="dynamic-title">Terrain Controls</strong>
                 <label>
                     Terrain Type:
                     <select id="terrainType">
@@ -49,12 +61,22 @@
                     </select>
                 </label>
             </div>
+
+            <!-- AUT Controls -->
+            <div id="autControls" style="display:none;">
+                <strong>AUT Controls</strong>
+                <button id="addAutBtn">Add AUT</button>
+            </div>
         </div>
 
-        <button id="addAutBtn">Add AUT</button>
+        <!-- Mouse Feedback Section -->
+        <div id="mouseFeedback" class="control-section">
+            <strong>Mouse Feedback</strong>
+            <p id="mouseInfo">Hover over the canvas to see details.</p>
+        </div>
 
-        <!-- Explicitly added scrolling Debug Checkbox Container -->
-        <div id="debugCheckboxContainer" class="debug-checkbox-container">
+        <!-- Debug Section -->
+        <div id="debug" class="control-section">
             <strong>Debug</strong>
             <div id="debugCheckboxes" class="checkbox-list"></div>
         </div>

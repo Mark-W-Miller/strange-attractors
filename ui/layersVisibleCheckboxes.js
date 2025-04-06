@@ -1,13 +1,14 @@
 import { DB } from '../debug/DB.js';
 import { redrawCanvas } from './canvas.js';
+
 const layers = ['EGF', 'Terrain', 'AUT'];
-const layersVisible = new Set(['EGF', 'Terrain']); // Initially: AUT not selected
+const layersVisible = new Set(['EGF', 'Terrain', 'AUT']); // Initially: all layers visible
 
 const container = document.getElementById('layersVisibleCheckboxes');
 
 function setLayerVisibility(layer, isVisible) {
     DB(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
-    
+
     // Explicitly handle canvas visibility
     const canvas = document.getElementById(`canvas-${layer}`);
     if (canvas) {
@@ -18,10 +19,11 @@ function setLayerVisibility(layer, isVisible) {
 }
 
 function createLayerCheckboxes() {
-    container.innerHTML = ''; // explicitly clear existing checkboxes first
+    container.innerHTML = ''; // Clear existing checkboxes first
 
     layers.forEach(layer => {
-        const label = document.createElement('label');
+        const row = document.createElement('div');
+        row.className = 'checkbox-row'; // Add a class for styling
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -33,13 +35,17 @@ function createLayerCheckboxes() {
                 ? layersVisible.add(layer)
                 : layersVisible.delete(layer);
             setLayerVisibility(layer, checkbox.checked);
-            redrawCanvas(); // Explicitly redraw canvas on visibility change
+            redrawCanvas(); // Redraw canvas on visibility change
         };
 
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(layer));
+        const label = document.createElement('label');
+        label.htmlFor = `layer-checkbox-${layer}`;
+        label.textContent = layer;
 
-        container.appendChild(label);
+        row.appendChild(checkbox);
+        row.appendChild(label);
+
+        container.appendChild(row);
 
         setLayerVisibility(layer, checkbox.checked);
     });
