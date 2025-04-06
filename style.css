@@ -9,15 +9,24 @@ body {
     flex-direction: column;
 }
 
-/* SPACE explicitly defined with margins and border */
-#gameCanvas {
-    background-color: #ffffff;
-    border: 2px solid #b08d57;
+#canvas-container {
+    position: relative;       /* required for child absolute positioning */
+    margin: 20px auto;        /* 20px vertical, centered horizontally */
+    width: calc(100% - 40px); /* exactly matches desired margin */
+    height: 80vh;             /* desired height */
     box-sizing: border-box;
-    width: calc(100% - 40px); /* Explicit margin 20px each side */
-    height: 80vh;
-    margin: 20px auto; /* Explicit margins: 20px top-bottom, auto horizontal centering */
-    display: block;
+    border: 2px solid #b08d57;
+    background: #ffffff;
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 100;
 }
 
 #controlBar {
@@ -136,12 +145,17 @@ label {
 }
 
 #canvas-EGF,
-#canvas-Terrain,
-#canvas-AUT {
+#canvas-Terrain{
     position: absolute;
     top: 0;
     left: 0;
 }
-#gameCanvas {
-    position: relative; /* explicit parent position */
+#canvas-AUT {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;  
+    pointer-events: none;
+    background: transparent;
 }
+
