@@ -28,19 +28,19 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         isMouseDown = false;
     });
 
-    gameCanvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        cursorSize += Math.sign(e.deltaY) * 6;
-        cursorSize = Math.max(1, Math.min(cursorSize, 500));
-        DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
+    // gameCanvas.addEventListener('wheel', (e) => {
+    //     e.preventDefault();
+    //     cursorSize += Math.sign(e.deltaY) * 6;
+    //     cursorSize = Math.max(1, Math.min(cursorSize, 500));
+    //     DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
     
-        // Immediately redraw cursor after size change
-        const event = new MouseEvent('mousemove', {
-            clientX: e.clientX,
-            clientY: e.clientY
-        });
-        gameCanvas.dispatchEvent(event);
-    });
+    //     // Immediately redraw cursor after size change
+    //     const event = new MouseEvent('mousemove', {
+    //         clientX: e.clientX,
+    //         clientY: e.clientY
+    //     });
+    //     gameCanvas.dispatchEvent(event);
+    // });
 
     gameCanvas.addEventListener('mousemove', (e) => {
         const canvasAUT = document.getElementById('canvas-AUT');

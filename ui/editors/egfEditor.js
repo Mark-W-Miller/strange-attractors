@@ -41,8 +41,9 @@ export function handleEGFMouseEvents(type, event, canvas, egf, cellSize, offsetX
         case 'wheel':
             if (!mouseIsDown) {
                 event.preventDefault();
-                massEditRadius += (event.deltaY < 0 ? 1 : -1);
+                massEditRadius += (event.deltaY < 0 ? 6 : -6);
                 massEditRadius = Math.max(0, massEditRadius);
+                cursorSize = massEditRadius ;
                 renderCanvas();
             }
             break;
