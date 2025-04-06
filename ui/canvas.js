@@ -6,6 +6,7 @@ export let gridConfig;
 export let EGFMap = [];
 export let TerrainMap = [];
 
+
 fetch('../data/gridConfig.json')
     .then(response => response.json())
     .then(async (config) => {
@@ -13,9 +14,11 @@ fetch('../data/gridConfig.json')
         await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
         initCanvas();
         window.addEventListener('resize', handleResize);
-        setupEventHandlers({ EGFMap, gridConfig, redrawCanvas });
+
+        const handlersModule = await import('./eventHandlers.js');
+        handlersModule.setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanvas });
     })
-    .catch(err => console.error('Failed to load gridConfig:', err));
+    .catch(err => console.error('Failed to load gridConfig:', err)); 
 
 export function redrawCanvas() {
     layers.forEach(layer => {
@@ -80,22 +83,49 @@ function drawEGF(ctx, width, height) {
     }
 }
 
-function drawTerrain(ctx, width, height) {
-    const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity, gridLineColors } = gridConfig;
-    const terrainGridWidth = gridWidth / terrainScaleFactor;
-    const terrainGridHeight = gridHeight / terrainScaleFactor;
-    const cellSize = Math.min(width / terrainGridWidth, height / terrainGridHeight);
+const terrainTypes = ['flat', 'wall', 'rough', 'water'];
+const terrainImages = {};
 
-    ctx.fillStyle = `rgba(139,69,19,${terrainOpacity})`;
+terrainTypes.forEach(type => {
+    terrainImages[type] = new Image();
+    terrainImages[type].src = `../images/terrain/${type}.png`;
+
+    // Explicit error logging
+    terrainImages[type].onerror = () => {
+        console.error(`Failed to explicitly load image: ${terrainImages[type].src}`);
+        DB(DB.INIT, `Image failed to load explicitly: ${terrainImages[type].src}`);
+    };
+});
+
+function drawTerrain(ctx, width, height) {
+    const { gridWidth, terrainScaleFactor, terrainOpacity, gridLineColors } = gridConfig;
+    const terrainGridWidth = gridWidth / terrainScaleFactor;
+    const terrainGridHeight = TerrainMap.length;
+    const cellWidth = width / terrainGridWidth;
+    const cellHeight = height / terrainGridHeight;
+
     ctx.strokeStyle = gridLineColors.Terrain || '#AAAAAA';
-    ctx.lineWidth = 5; // <-- explicitly set desired thickness here
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = terrainOpacity;
 
     for (let y = 0; y < terrainGridHeight; y++) {
         for (let x = 0; x < terrainGridWidth; x++) {
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            const terrainType = TerrainMap[y][x] || 'flat';
+            const img = terrainImages[terrainType];
+
+            if (img.complete && img.naturalWidth !== 0) {
+                ctx.drawImage(img, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            } else {
+                // Draw fallback explicitly if image not loaded
+                ctx.fillStyle = 'rgba(200,200,200,0.5)';
+                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
+
+            ctx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
     }
+
+    ctx.globalAlpha = 1.0;
 }
 
 function drawAUTs(ctx, width, height) {

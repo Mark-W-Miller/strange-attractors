@@ -31,9 +31,12 @@ DB.RND_TERR = 3;  // Terrain rendering
 DB.RND_EGF = 4;   // EGF rendering
 // debug/DB.js (existing contents plus:)
 DB.INIT = 5;  // explicitly new class for initialization debugging
+DB.UI = 6;  // explicitly new class for initialization debugging
+DB.MSE_MOVED = 7;  // explicitly new class for initialization debugging
 
 // Explicitly enabled debug classes
 DB.enabledDB = new Set([
+  DB.UI,
   DB.INIT,
   DB.MSE,
   DB.RND,
@@ -44,8 +47,10 @@ DB.enabledDB = new Set([
 // Explicitly convert debug class to string
 DB.classToString = function(dbClass) {
   switch (dbClass) {
-      case DB.MSE: return 'MSE';
-      case DB.RND: return 'RND';
+    case DB.UI: return 'UI';
+    case DB.MSE_MOVED: return 'MSE_M';
+    case DB.MSE: return 'MSE';
+    case DB.RND: return 'RND';
       case DB.RND_TERR: return 'RND_TERR';
       case DB.RND_EGF: return 'RND_EGF';
       default: return 'UNKNOWN';
@@ -58,28 +63,28 @@ DB.enabledDB.add(DB.INIT);
 
 // debug/DB.js (explicitly async initialization)
 DB.initializeForDebug = async function(gridConfig, EGFMap, TerrainMap) {
-  return new Promise((resolve) => {
-      const { gridWidth, gridHeight, terrainScaleFactor, defaultTerrainType } = gridConfig;
+  const { gridWidth, gridHeight, terrainScaleFactor, defaultTerrainType } = gridConfig;
 
-      for (let y = 0; y < gridHeight; y++) {
-          EGFMap[y] = [];
-          for (let x = 0; x < gridWidth; x++) {
-              // Explicit gradient initialization
-              const arv = -10 + (x / (gridWidth - 1)) * 20;
-              EGFMap[y][x] = arv;
-          }
+  // Clear existing arrays explicitly (in-place modification)
+  EGFMap.length = 0;
+  TerrainMap.length = 0;
+
+  for (let y = 0; y < gridHeight; y++) {
+      EGFMap.push([]);
+      for (let x = 0; x < gridWidth; x++) {
+          EGFMap[y].push(-10 + (x / (gridWidth - 1)) * 20);
       }
+  }
 
-      const terrainGridWidth = gridWidth / terrainScaleFactor;
-      const terrainGridHeight = gridHeight / terrainScaleFactor;
-      for (let y = 0; y < terrainGridHeight; y++) {
-          TerrainMap[y] = [];
-          for (let x = 0; x < terrainGridWidth; x++) {
-              TerrainMap[y][x] = defaultTerrainType || 'flat';
-          }
+  const terrainGridWidth = gridWidth / terrainScaleFactor;
+  const terrainGridHeight = gridHeight / terrainScaleFactor;
+  for (let y = 0; y < terrainGridHeight; y++) {
+      TerrainMap.push([]);
+      for (let x = 0; x < terrainGridWidth; x++) {
+          TerrainMap[y].push(defaultTerrainType || 'flat');
       }
+  }
 
-      DB(DB.INIT, "EGF and Terrain maps initialized explicitly.");
-      resolve();
-  });
+  DB(DB.INIT, "EGF and Terrain maps explicitly initialized in-place." + TerrainMap);
+  DB(DB.INIT, "EGF and Terrain maps explicitly initialized in-place." + EGFMap);
 };
