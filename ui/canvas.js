@@ -1,28 +1,33 @@
-import { DB } from '../debug/DB.js';
+import { Database } from '../../logic/simulator/database/database.js';
 import { drawEGF } from './editors/egfEditor.js';
 import { drawTerrain } from './editors/terrainEditor.js';
 import { drawAUTs } from './editors/autEditor.js';
-
+import { DB } from '../../debug/DB.js';
 
 export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
-export let gridConfig;
-export let EGFMap = [];
-export let TerrainMap = [];
-export const terrainTypes = ['flat', 'wall', 'rough', 'water'];
-export const terrainImages = {};
 
-fetch('../data/gridConfig.json')
-    .then(response => response.json())
-    .then(async (config) => {
-        gridConfig = config;
-        await DB.initializeForDebug(gridConfig, EGFMap, TerrainMap);
-        initCanvas();
-        window.addEventListener('resize', handleResize);
+export async function initializeCanvas() {
+    DB(DB.DB_INIT, '[Canvas] Initializing canvas...');
+    await Database.initialize('../data/gridConfig.json');
+    DB(DB.DB_INIT, '[Canvas] Database initialized.');
 
+    Database.initializeForDebug();
+    DB(DB.DB_INIT, '[Canvas] Database debug initialization complete.');
+
+    initCanvas();
+    DB(DB.DB_INIT, '[Canvas] Canvas initialized.');
+
+    window.addEventListener('resize', handleResize);
+
+    try {
         const handlersModule = await import('./eventHandlers.js');
-        handlersModule.setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanvas });
-    })
-    .catch(err => console.error('Failed to load gridConfig:', err)); 
+        handlersModule.setupEventHandlers({ redrawCanvas });
+        DB(DB.DB_INIT, '[Canvas] Event handlers set up.');
+
+    } catch (error) {
+        DB(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
+    }
+}
 
 export function redrawCanvas() {
     layers.forEach(layer => {
@@ -40,43 +45,30 @@ function drawLayer(layer) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    switch (layer) {
-        case 'EGF':
-            drawEGF(ctx, canvas.width, canvas.height);
-            break;
-        case 'Terrain':
-            drawTerrain(ctx, canvas.width, canvas.height);
-            break;
-        case 'AUT':
-            drawAUTs(ctx, canvas.width, canvas.height);
-            break;
+    try {
+        switch (layer) {
+            case 'EGF':
+                drawEGF(ctx, canvas.width, canvas.height);
+                break;
+            case 'Terrain':
+                drawTerrain(ctx, canvas.width, canvas.height);
+                break;
+            case 'AUT':
+                drawAUTs(ctx, canvas.width, canvas.height);
+                break;
+        }
+    } catch (error) {
+        console.error(`Error drawing layer ${layer}:`, error);
     }
 }
 
-
-
-
-terrainTypes.forEach(type => {
-    terrainImages[type] = new Image();
-    terrainImages[type].src = `../images/terrain/${type}.png`;
-
-    // Explicit error logging
-    terrainImages[type].onerror = () => {
-        console.error(`Failed to explicitly load image: ${terrainImages[type].src}`);
-        DB(DB.INIT, `Image failed to load explicitly: ${terrainImages[type].src}`);
-    };
-});
-
-
-
-// Resize explicitly to maintain perfect square grid cells
 function handleResize() {
     const container = document.getElementById('gameCanvas');
     const availableWidth = container.clientWidth;
     const availableHeight = container.clientHeight;
 
-    const totalGridWidth = gridConfig.gridWidth;
-    const totalGridHeight = gridConfig.gridHeight;
+    const totalGridWidth = Database.gridConfig.gridWidth;
+    const totalGridHeight = Database.gridConfig.gridHeight;
     const cellSize = Math.min(
         availableWidth / totalGridWidth,
         availableHeight / totalGridHeight

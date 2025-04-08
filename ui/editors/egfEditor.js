@@ -1,19 +1,13 @@
 import { DB } from '../../debug/DB.js';
-import { selectedBrushShape, cursorSize } from '../eventHandlers.js'
-import { redrawCanvas, gridConfig, EGFMap } from '../canvas.js';
-
-
-// let mouseIsDown = false;
-// let mouseButton = null;
-// let lastCellKey = null;
-// let massEditRadius = 0;
-// let mousePos = null;
+import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
+import { redrawCanvas } from '../canvas.js';
+import { Database } from '../../logic/simulator/database/database.js';
 
 export function handleEditEGF(e, buttonType) {
     const canvasEGF = document.getElementById('canvas-EGF');
     const rect = canvasEGF.getBoundingClientRect();
-    const cellWidth = rect.width / gridConfig.gridWidth;
-    const cellHeight = rect.height / gridConfig.gridHeight;
+    const cellWidth = rect.width / Database.gridConfig.gridWidth;
+    const cellHeight = rect.height / Database.gridConfig.gridHeight;
 
     const centerX = Math.floor((e.clientX - rect.left) / cellWidth);
     const centerY = Math.floor((e.clientY - rect.top) / cellHeight);
@@ -23,8 +17,8 @@ export function handleEditEGF(e, buttonType) {
 
     for (let y = centerY - radius; y <= centerY + radius; y++) {
         for (let x = centerX - radius; x <= centerX + radius; x++) {
-            if (y >= 0 && y < gridConfig.gridHeight && x >= 0 && x < gridConfig.gridWidth) {
-                if (!EGFMap[y]) {
+            if (y >= 0 && y < Database.gridConfig.gridHeight && x >= 0 && x < Database.gridConfig.gridWidth) {
+                if (!Database.EGFMap[y]) {
                     DB(DB.MSE, `EGF row ${y} explicitly not initialized.`);
                     continue;
                 }
@@ -42,12 +36,12 @@ export function handleEditEGF(e, buttonType) {
                 }
 
                 if (buttonType === 0) {
-                    EGFMap[y][x] = Math.max(-10, EGFMap[y][x] - 1);
+                    Database.EGFMap[y][x] = Math.max(0, Database.EGFMap[y][x] - 10); // Decrease value, min 0
                 } else if (buttonType === 2) {
-                    EGFMap[y][x] = Math.min(10, EGFMap[y][x] + 1);
+                    Database.EGFMap[y][x] = Math.min(255, Database.EGFMap[y][x] + 10); // Increase value, max 255
                 }
 
-                DB(DB.MSE, `Edited EGF at (${x}, ${y}) to ${EGFMap[y][x]}`);
+                DB(DB.MSE, `Edited EGF at (${x}, ${y}) to ${Database.EGFMap[y][x]}`);
             }
         }
     }
@@ -55,16 +49,14 @@ export function handleEditEGF(e, buttonType) {
 }
 
 export function drawEGF(ctx, width, height) {
-    const { gridWidth, gridHeight, gridLineColors } = gridConfig;
+    const { gridWidth, gridHeight, gridLineColors } = Database.gridConfig;
     const cellSize = Math.min(width / gridWidth, height / gridHeight);
 
     // Draw grayscale explicitly based on ARV from EGFMap
     for (let y = 0; y < gridHeight; y++) {
         for (let x = 0; x < gridWidth; x++) {
-            const arv = EGFMap[y][x];  // explicitly use EGFMap ARV values
-            const normalized = (arv + 10) / 20; // explicitly normalize -10..+10 ARV to 0..1
-            const shade = Math.floor(normalized * 255);
-            ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+            const arv = Database.EGFMap[y][x]; // Use EGFMap values directly (0 to 255)
+            ctx.fillStyle = `rgb(${arv},${arv},${arv})`;
             ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }
     }

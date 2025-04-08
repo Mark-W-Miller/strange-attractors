@@ -1,33 +1,41 @@
 // ui/debugCheckboxes.js
 import { DB } from '../debug/DB.js';
 
-const debugCheckboxes = document.getElementById('debugCheckboxes');
+export function populateDebugCheckboxes() {
+    const debugCheckboxes = document.getElementById('debugCheckboxes');
+    if (!debugCheckboxes) {
+        DB(DB.INIT, '[DebugCheckboxes] Debug checkboxes container not found.');
+        return;
+    }
 
-function createDebugCheckboxes() {
-    Object.entries(DB)
-        .filter(([_, val]) => typeof val === 'number')
-        .forEach(([name, classId]) => {
-            const label = document.createElement('label');
-            
-            // Explicitly create checkbox input
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = DB.enabledDB.has(classId);
-            checkbox.id = `db-checkbox-${name}`;
+    // Clear existing checkboxes
+    debugCheckboxes.innerHTML = '';
 
-            checkbox.onchange = () => {
-                checkbox.checked
-                    ? DB.enabledDB.add(classId)
-                    : DB.enabledDB.delete(classId);
-                DB(DB.RND, `Debug ${name}:`, checkbox.checked);
-            };
+    // Populate debug options
+    for (const debugClass of DB.enabledDB) {
+        const label = document.createElement('label');
+        label.style.display = 'block';
 
-            // Explicitly append checkbox and text to label correctly
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(name));
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true; // Default to enabled
+        checkbox.dataset.debugClass = debugClass;
 
-            debugCheckboxes.appendChild(label);
+        checkbox.addEventListener('change', (e) => {
+            const debugClass = parseInt(e.target.dataset.debugClass, 10);
+            if (e.target.checked) {
+                DB.enabledDB.add(debugClass);
+                DB(DB.INIT, `[DebugCheckboxes] Enabled debug class: ${DB.classToString(debugClass)}`);
+            } else {
+                DB.enabledDB.delete(debugClass);
+                DB(DB.INIT, `[DebugCheckboxes] Disabled debug class: ${DB.classToString(debugClass)}`);
+            }
         });
-}
 
-document.addEventListener('DOMContentLoaded', createDebugCheckboxes);
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(DB.classToString(debugClass)));
+        debugCheckboxes.appendChild(label);
+    }
+
+    DB(DB.INIT, '[DebugCheckboxes] Debug options populated.');
+}

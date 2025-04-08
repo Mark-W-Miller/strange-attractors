@@ -1,8 +1,8 @@
 import { DB } from '../../debug/DB.js';
 import { TerrainGrid } from '../../logic/grid.js';
-import { selectedBrushShape, cursorSize } from '../eventHandlers.js'
-import { redrawCanvas, gridConfig } from '../canvas.js';
-import {TerrainMap,terrainImages} from '../canvas.js';
+import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
+import { redrawCanvas } from '../canvas.js';
+import { Database } from '../../logic/simulator/database/database.js';
 
 let mouseIsDown = false, mouseButton, lastCellKey, massEditRadius = 0;
 let mousePos = null, terrainGrid, terrainTypeSelect, brushShapeSelect;
@@ -19,8 +19,8 @@ export function handleEditTerrain(e, buttonType) {
     const terrainTypeSelect = document.getElementById('terrainType');
     const selectedTerrainType = terrainTypeSelect.value;
 
-    const terrainGridWidth = gridConfig.gridWidth / gridConfig.terrainScaleFactor;
-    const terrainGridHeight = gridConfig.gridHeight / gridConfig.terrainScaleFactor;
+    const terrainGridWidth = Database.gridConfig.gridWidth / Database.gridConfig.terrainScaleFactor;
+    const terrainGridHeight = Database.gridConfig.gridHeight / Database.gridConfig.terrainScaleFactor;
 
     const canvasTerrain = document.getElementById('canvas-Terrain');
     const rect = canvasTerrain.getBoundingClientRect();
@@ -36,7 +36,7 @@ export function handleEditTerrain(e, buttonType) {
     for (let y = centerY - radius; y <= centerY + radius; y++) {
         for (let x = centerX - radius; x <= centerX + radius; x++) {
             if (y >= 0 && y < terrainGridHeight && x >= 0 && x < terrainGridWidth) {
-                if (!TerrainMap[y]) {
+                if (!Database.TerrainMap[y]) {
                     DB(DB.MSE, `Terrain row ${y} explicitly not initialized.`);
                     continue;
                 }
@@ -53,7 +53,7 @@ export function handleEditTerrain(e, buttonType) {
                     if (distance > radius) continue;
                 }
 
-                TerrainMap[y][x] = selectedTerrainType;
+                Database.TerrainMap[y][x] = selectedTerrainType;
 
                 DB(DB.MSE, `Edited Terrain at (${x}, ${y}) with ${selectedTerrainType}`);
             }
@@ -63,11 +63,10 @@ export function handleEditTerrain(e, buttonType) {
     redrawCanvas();
 }
 
-
 export function drawTerrain(ctx, width, height) {
-    const { gridWidth, terrainScaleFactor, terrainOpacity, gridLineColors } = gridConfig;
+    const { gridWidth, terrainScaleFactor, terrainOpacity, gridLineColors } = Database.gridConfig;
     const terrainGridWidth = gridWidth / terrainScaleFactor;
-    const terrainGridHeight = TerrainMap.length;
+    const terrainGridHeight = Database.TerrainMap.length;
     const cellWidth = width / terrainGridWidth;
     const cellHeight = height / terrainGridHeight;
 
@@ -77,8 +76,8 @@ export function drawTerrain(ctx, width, height) {
 
     for (let y = 0; y < terrainGridHeight; y++) {
         for (let x = 0; x < terrainGridWidth; x++) {
-            const terrainType = TerrainMap[y][x] || 'flat';
-            const img = terrainImages[terrainType];
+            const terrainType = Database.TerrainMap[y][x] || 'flat';
+            const img = Database.terrainImages[terrainType];
 
             if (img.complete && img.naturalWidth !== 0) {
                 ctx.drawImage(img, x * cellWidth, y * cellHeight, cellWidth, cellHeight);

@@ -6,19 +6,8 @@ const layersVisible = new Set(['EGF', 'Terrain', 'AUT']); // Initially: all laye
 
 const container = document.getElementById('layersVisibleCheckboxes');
 
-function setLayerVisibility(layer, isVisible) {
-    DB(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
 
-    // Explicitly handle canvas visibility
-    const canvas = document.getElementById(`canvas-${layer}`);
-    if (canvas) {
-        canvas.style.display = isVisible ? 'block' : 'none';
-    } else {
-        DB(DB.RND, `Canvas not found explicitly for layer: ${layer}`);
-    }
-}
-
-function createLayerCheckboxes() {
+export function createLayerCheckboxes() {
     container.innerHTML = ''; // Clear existing checkboxes first
 
     layers.forEach(layer => {
@@ -51,4 +40,14 @@ function createLayerCheckboxes() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', createLayerCheckboxes);
+function setLayerVisibility(layer, isVisible) {
+    DB(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
+
+    // Explicitly handle canvas visibility
+    const canvas = document.getElementById(`canvas-${layer}`);
+    if (canvas) {
+        canvas.style.display = isVisible ? 'block' : 'none';
+    } else {
+        DB(DB.RND, `Canvas not found explicitly for layer: ${layer}`);
+    }
+}

@@ -2,7 +2,7 @@
 import { DB } from '../debug/DB.js';
 import { handleEditEGF } from './editors/egfEditor.js';
 import { handleEditTerrain } from './editors/terrainEditor.js';
-
+import { updateMouseFeedback } from './controlBar.js';
 
 export let selectedBrushShape = 'circle';
 export let cursorSize = 20;
@@ -65,8 +65,10 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
+        // Redraw the canvas
         redrawCanvas();
 
+        // Draw the cursor
         ctx.strokeStyle = 'rgba(0,0,0,0.8)';
         ctx.lineWidth = 1;
 
@@ -78,8 +80,10 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
             ctx.strokeRect(x - cursorSize / 2, y - cursorSize / 2, cursorSize, cursorSize);
         }
 
-        DB(DB.MSE_MOVED, `Cursor MOVE (${x}, ${y})` + selectedBrushShape);
+        // Update mouse feedback
+        updateMouseFeedback(e);
 
+        // Handle editing if the mouse is down
         if (isMouseDown) {
             let buttonType = null;
             if (e.buttons & 1) buttonType = 0;
