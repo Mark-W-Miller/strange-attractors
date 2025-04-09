@@ -1,5 +1,11 @@
 import { Database } from '../../logic/simulator/database/database.js';
 import { DB } from '../../debug/DB.js';
+import { Simulator } from '../../logic/simulator/engine/simulator.js';
+
+// Simulator control buttons
+const startSimulatorBtn = document.getElementById('startSimulatorBtn');
+const pauseSimulatorBtn = document.getElementById('pauseSimulatorBtn');
+const stopSimulatorBtn = document.getElementById('stopSimulatorBtn');
 
 const layerSelect = document.getElementById('layerSelect');
 const terrainControls = document.getElementById('terrainControls');
@@ -103,6 +109,21 @@ export function updateMouseFeedback(e) {
     `;
 }
 
+// Add event listeners for simulator controls
+startSimulatorBtn.addEventListener('click', () => {
+    DB(DB.EVENTS, '[ControlBar] Start button clicked.');
+    Simulator.start();
+});
+
+pauseSimulatorBtn.addEventListener('click', () => {
+    DB(DB.EVENTS, '[ControlBar] Pause button clicked.');
+    Simulator.pause();
+});
+
+stopSimulatorBtn.addEventListener('click', () => {
+    DB(DB.EVENTS, '[ControlBar] Stop button clicked.');
+    Simulator.stop();
+});
 
 layerSelect.addEventListener('change', (e) => {
     const mode = e.target.value;

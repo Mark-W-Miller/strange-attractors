@@ -219,4 +219,21 @@ body {
     background-color: #8a6e45;
 }
 
+/* Simulator Controls */
+#simulatorControls {
+    margin-top: 20px;
+}
+
+#simulatorControls button {
+    display: block;
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#simulatorControls button:hover {
+    background-color: #f0f0f0;
+}
+
 

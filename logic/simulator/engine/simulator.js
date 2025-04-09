@@ -1,4 +1,6 @@
 import { Database } from '../database/database.js';
+import { DB } from '../../../debug/DB.js';
+import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas from canvas.js
 
 export const Simulator = {
     isRunning: false,
@@ -7,20 +9,20 @@ export const Simulator = {
 
     start() {
         if (this.isRunning) {
-            console.log('Simulator is already running.');
+            DB(DB.EVENTS, '[Simulator] Simulator is already running.');
             return;
         }
 
         this.isRunning = true;
         this.isPaused = false;
 
-        console.log('Simulator started.');
+        DB(DB.EVENTS, '[Simulator] Simulator started.');
         this.run();
     },
 
     stop() {
         if (!this.isRunning) {
-            console.log('Simulator is not running.');
+            DB(DB.EVENTS, '[Simulator] Simulator is not running.');
             return;
         }
 
@@ -32,12 +34,12 @@ export const Simulator = {
             this.intervalId = null;
         }
 
-        console.log('Simulator stopped.');
+        DB(DB.EVENTS, '[Simulator] Simulator stopped.');
     },
 
     pause() {
         if (!this.isRunning || this.isPaused) {
-            console.log('Simulator is not running or already paused.');
+            DB(DB.EVENTS, '[Simulator] Simulator is not running or already paused.');
             return;
         }
 
@@ -48,7 +50,7 @@ export const Simulator = {
             this.intervalId = null;
         }
 
-        console.log('Simulator paused.');
+        DB(DB.EVENTS, '[Simulator] Simulator paused.');
     },
 
     run() {
@@ -56,8 +58,8 @@ export const Simulator = {
             if (this.isPaused) return;
 
             // Simulation logic goes here
-            console.log('Running simulation step...');
-            Database.redrawCanvas(); // Example: Redraw the canvas
+            DB(DB.EVENTS, '[Simulator] Running simulation step...');
+            redrawCanvas(); // Call redrawCanvas directly
         }, 1000 / 60); // 60 FPS
     }
 };
