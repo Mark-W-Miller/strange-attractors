@@ -1,5 +1,5 @@
 {
-  "name": "GradientInitializer",
+  "name": "Gradient Initializer",
   "description": "Populates EGF map with a gradient and Terrain map with alternating terrain types.",
   "egfInitializer": {
     "type": "gradient",

@@ -137,19 +137,33 @@ layerSelect.addEventListener('change', (e) => {
 async function populateInitializers() {
     try {
         DB(DB.DB_INIT, '[ControlBar] Fetching initializer files...');
-        const response = await fetch('../data/initializers/'); // Ensure this endpoint returns a list of JSON files
-        const files = await response.json(); // Assume the server returns a list of JSON files
+        const response = await fetch('../data/initializers/initializers.json'); // Fetch the JSON file containing the list of initializers
+        if (!response.ok) {
+            throw new Error(`[ControlBar] Failed to fetch initializers: ${response.statusText}`);
+        }
+
+        const files = await response.json(); // Parse the JSON array
         DB(DB.UI, '[ControlBar] Initializer files fetched:', files);
 
         initializerSelect.innerHTML = ''; // Clear existing options
 
-        files.forEach(file => {
-            const option = document.createElement('option');
-            option.value = `../data/initializers/${file}`;
-            option.textContent = file.replace('.json', ''); // Remove the .json extension for display
-            initializerSelect.appendChild(option);
-            DB(DB.DB_INIT, `[ControlBar] Added initializer option: ${file}`);
-        });
+        for (const file of files) {
+            try {
+                const fileResponse = await fetch(`../data/initializers/${file}`);
+                if (!fileResponse.ok) {
+                    throw new Error(`[ControlBar] Failed to fetch initializer file: ${file}`);
+                }
+
+                const initializerConfig = await fileResponse.json();
+                const option = document.createElement('option');
+                option.value = `../data/initializers/${file}`;
+                option.textContent = initializerConfig.name || file.replace('.json', ''); // Use the `name` field or fallback to the filename
+                initializerSelect.appendChild(option);
+                DB(DB.DB_INIT, `[ControlBar] Added initializer option: ${initializerConfig.name || file}`);
+            } catch (error) {
+                DB(DB.DB_INIT, `[ControlBar] Error processing initializer file: ${file}`, error);
+            }
+        }
 
         DB(DB.DB_INIT, '[ControlBar] Initializer dropdown populated.');
     } catch (error) {
