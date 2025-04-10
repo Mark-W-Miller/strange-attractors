@@ -126,6 +126,22 @@ body {
     background-color: #fff;
 }
 
+/* Style for the initializer dropdown */
+#initializerSelect {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+#initializerSelect:hover {
+    background-color: #f0f0f0;
+}
+
 /* Mouse Feedback Section */
 #mouseFeedback {
     font-size: 14px;

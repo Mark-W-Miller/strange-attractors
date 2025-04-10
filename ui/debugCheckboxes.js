@@ -18,22 +18,20 @@ export function populateDebugCheckboxes() {
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = true; // Default to enabled
+        checkbox.checked = DB.dbLevelsOn.has(debugClass); // Reflect current state
         checkbox.dataset.debugClass = debugClass;
 
         checkbox.addEventListener('change', (e) => {
-            const debugClass = parseInt(e.target.dataset.debugClass, 10);
+            const debugClass = e.target.dataset.debugClass;
             if (e.target.checked) {
-                DB.enabledDB.add(debugClass);
-                DB(DB.INIT, `[DebugCheckboxes] Enabled debug class: ${DB.classToString(debugClass)}`);
+                DB.enable(debugClass);
             } else {
-                DB.enabledDB.delete(debugClass);
-                DB(DB.INIT, `[DebugCheckboxes] Disabled debug class: ${DB.classToString(debugClass)}`);
+                DB.disable(debugClass);
             }
         });
 
         label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(DB.classToString(debugClass)));
+        label.appendChild(document.createTextNode(debugClass));
         debugCheckboxes.appendChild(label);
     }
 

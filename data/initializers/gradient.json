@@ -1,0 +1,13 @@
+{
+  "name": "GradientInitializer",
+  "description": "Populates EGF map with a gradient and Terrain map with alternating terrain types.",
+  "egfInitializer": {
+    "type": "gradient",
+    "startValue": 0,
+    "endValue": 255
+  },
+  "terrainInitializer": {
+    "type": "alternating",
+    "terrainTypes": ["flat", "rough"]
+  }
+}

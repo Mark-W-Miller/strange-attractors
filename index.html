@@ -18,7 +18,6 @@
         <!-- LayerControl Section -->
         <div id="layerControl" class="control-section">
             <label for="layerSelect">
-                Edit Mode:
                 <select id="layerSelect" name="layerSelect">
                     <option value="EGF">EGF</option>
                     <option value="Terrain">Terrain</option>
@@ -27,27 +26,24 @@
             </label>
 
             <div id="layersVisibleContainer" class="checkbox-container">
-                <strong>Layers Visible</strong>
                 <div id="layersVisibleCheckboxes" class="checkbox-list"></div>
             </div>
 
             <label for="brushShape">
-                Brush Shape:
                 <select id="brushShape">
                     <option value="circle">Circle Brush</option>
                     <option value="square">Square Brush</option>
                 </select>
             </label>
+
+            <!-- Initializer Dropdown -->
+            <select id="initializerSelect" class="popup">
+                <!-- Options will be dynamically populated -->
+            </select>
         </div>
 
         <!-- Dynamic Controls Section -->
         <div id="dynamicControls" class="control-section">
-            <!-- EGF Controls -->
-            <div id="egfControls" style="display:none;">
-                <strong>EGF Controls</strong>
-                <p>No controls available yet.</p>
-            </div>
-
             <!-- Terrain Controls -->
             <div id="terrainControls" style="display:none;">
                 <strong class="dynamic-title">Terrain Controls</strong>
@@ -82,14 +78,13 @@
             <button id="pauseSimulatorBtn">Pause</button>
             <button id="stopSimulatorBtn">Stop</button>
         </div>
+
+        <!-- Debug Section -->
         <div id="debug" class="control-section">
             <strong>Debug</strong>
             <div id="debugCheckboxes" class="checkbox-list"></div>
         </div>
-      </div>
-
-    <!-- Debug Section -->
-
+    </div>
 
     <!-- Scripts explicitly required -->
     <script type="module" src="app.js"></script>

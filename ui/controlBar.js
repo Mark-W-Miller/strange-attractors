@@ -1,6 +1,7 @@
 import { Database } from '../../logic/simulator/database/database.js';
 import { DB } from '../../debug/DB.js';
 import { Simulator } from '../../logic/simulator/engine/simulator.js';
+import { initializeCanvas } from './canvas.js';
 
 // Simulator control buttons
 const startSimulatorBtn = document.getElementById('startSimulatorBtn');
@@ -11,6 +12,7 @@ const layerSelect = document.getElementById('layerSelect');
 const terrainControls = document.getElementById('terrainControls');
 const mouseFeedback = document.getElementById('mouseFeedback');
 const mouseInfo = document.getElementById('mouseInfo');
+const initializerSelect = document.getElementById('initializerSelect');
 
 // Canvas elements
 const canvasContainer = document.getElementById('canvas-container');
@@ -130,3 +132,37 @@ layerSelect.addEventListener('change', (e) => {
     terrainControls.style.display = mode === 'Terrain' ? 'block' : 'none';
     console.log(`Switched mode to ${mode}`);
 });
+
+// Populate initializer dropdown
+async function populateInitializers() {
+    try {
+        DB(DB.DB_INIT, '[ControlBar] Fetching initializer files...');
+        const response = await fetch('../data/initializers/'); // Ensure this endpoint returns a list of JSON files
+        const files = await response.json(); // Assume the server returns a list of JSON files
+        DB(DB.UI, '[ControlBar] Initializer files fetched:', files);
+
+        initializerSelect.innerHTML = ''; // Clear existing options
+
+        files.forEach(file => {
+            const option = document.createElement('option');
+            option.value = `../data/initializers/${file}`;
+            option.textContent = file.replace('.json', ''); // Remove the .json extension for display
+            initializerSelect.appendChild(option);
+            DB(DB.DB_INIT, `[ControlBar] Added initializer option: ${file}`);
+        });
+
+        DB(DB.DB_INIT, '[ControlBar] Initializer dropdown populated.');
+    } catch (error) {
+        DB(DB.DB_INIT, '[ControlBar] Failed to populate initializer dropdown:', error);
+    }
+}
+
+// Load selected initializer
+initializerSelect.addEventListener('change', async (e) => {
+    const initializerConfigUrl = e.target.value;
+    await initializeCanvas(initializerConfigUrl);
+    DB(DB.UI, `[ControlBar] Loaded initializer: ${initializerConfigUrl}`);
+});
+
+// Populate initializers on load
+populateInitializers();

@@ -1,4 +1,5 @@
 import { DB } from '../../../debug/DB.js';
+import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
 
 export const Database = {
     gridConfig: null,
@@ -7,35 +8,33 @@ export const Database = {
     terrainTypes: ['flat', 'wall', 'rough', 'water'],
     terrainImages: {},
 
-    async initialize(gridConfigUrl) {
+    async initialize(gridConfigUrl, initializerConfigUrl) {
         DB(DB.DB_INIT, '[Database] Starting initialization...');
         try {
-            const response = await fetch(gridConfigUrl);
-            this.gridConfig = await response.json();
+            // Load grid configuration
+            const gridResponse = await fetch(gridConfigUrl);
+            this.gridConfig = await gridResponse.json();
             DB(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
 
-            // Initialize EGFMap and TerrainMap
-            this.EGFMap = Array.from({ length: this.gridConfig.gridHeight }, () =>
-                Array.from({ length: this.gridConfig.gridWidth }, () => this.gridConfig.initialARV || 0)
-            );
-            DB(DB.DB_INIT, '[Database] EGFMap initialized with dimensions:', this.EGFMap.length, 'x', this.EGFMap[0]?.length);
+            // Load initializer configuration
+            const initializerResponse = await fetch(initializerConfigUrl);
+            const initializerConfig = await initializerResponse.json();
+            DB(DB.DB_INIT, '[Database] Initializer config loaded:', initializerConfig);
 
-            const terrainGridWidth = this.gridConfig.gridWidth / this.gridConfig.terrainScaleFactor;
-            const terrainGridHeight = this.gridConfig.gridHeight / this.gridConfig.terrainScaleFactor;
-            this.TerrainMap = Array.from({ length: terrainGridHeight }, () =>
-                Array.from({ length: terrainGridWidth }, () => this.gridConfig.defaultTerrainType || 'flat')
+            // Initialize EGFMap and TerrainMap
+            this.EGFMap = initializeEGFMap(initializerConfig.egfInitializer, this.gridConfig.gridWidth, this.gridConfig.gridHeight);
+            this.TerrainMap = initializeTerrainMap(
+                initializerConfig.terrainInitializer,
+                this.gridConfig.gridWidth,
+                this.gridConfig.gridHeight,
+                this.gridConfig.terrainScaleFactor
             );
-            DB(DB.DB_INIT, '[Database] TerrainMap initialized with dimensions:', this.TerrainMap.length, 'x', this.TerrainMap[0]?.length);
 
             // Load terrain images
-            this.terrainTypes.forEach(type => {
-                this.terrainImages[type] = new Image();
-                this.terrainImages[type].src = `../images/terrain/${type}.png`;
-                this.terrainImages[type].onerror = () => {
-                    DB(DB.DB_INIT, `[Database] Failed to load image for terrain type: ${type}`);
-                };
-            });
-            DB(DB.DB_INIT, '[Database] Terrain images initialized:', Object.keys(this.terrainImages));
+            await this.loadTerrainImages();
+
+            // Verify EGFMap integrity
+            this.verifyEGFMap();
 
             DB(DB.DB_INIT, '[Database] Initialization complete.');
         } catch (error) {
@@ -43,28 +42,33 @@ export const Database = {
         }
     },
 
-    initializeForDebug() {
-        DB(DB.DB_INIT, '[Database] Initializing for debug...');
-        if (!this.gridConfig) {
-            DB(DB.DB_INIT, '[Database] gridConfig is not set. Cannot initialize for debug.');
-            return;
+    async loadTerrainImages() {
+        const terrainTypes = this.terrainTypes;
+        for (const type of terrainTypes) {
+            const img = new Image();
+            img.src = `../images/terrain/${type}.png`; // Ensure these paths are correct
+            await new Promise((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error(`[Database] Failed to load terrain image for type: ${type}`));
+            });
+            this.terrainImages[type] = img;
+        }
+        DB(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
+    },
+
+    verifyEGFMap() {
+        const { gridWidth, gridHeight } = this.gridConfig;
+
+        if (!this.EGFMap || this.EGFMap.length !== gridHeight) {
+            throw new Error(`[Database] EGFMap has an invalid number of rows: ${this.EGFMap?.length || 0}`);
         }
 
-        for (let y = 0; y < this.gridConfig.gridHeight; y++) {
-            for (let x = 0; x < this.gridConfig.gridWidth; x++) {
-                this.EGFMap[y][x] = Math.floor(Math.random() * 256); // Random values for debugging
+        for (let y = 0; y < gridHeight; y++) {
+            if (!this.EGFMap[y] || this.EGFMap[y].length !== gridWidth) {
+                throw new Error(`[Database] EGFMap row ${y} has an invalid number of columns: ${this.EGFMap[y]?.length || 0}`);
             }
         }
-        DB(DB.DB_INIT, '[Database] EGFMap populated with random values for debugging.');
 
-        const terrainGridWidth = this.gridConfig.gridWidth / this.gridConfig.terrainScaleFactor;
-        const terrainGridHeight = this.gridConfig.gridHeight / this.gridConfig.terrainScaleFactor;
-        for (let y = 0; y < terrainGridHeight; y++) {
-            for (let x = 0; x < terrainGridWidth; x++) {
-                const types = this.terrainTypes;
-                this.TerrainMap[y][x] = types[Math.floor(Math.random() * types.length)];
-            }
-        }
-        DB(DB.DB_INIT, '[Database] TerrainMap populated with random terrain types for debugging.');
+        DB(DB.DB_INIT, '[Database] EGFMap integrity verified.');
     }
 };

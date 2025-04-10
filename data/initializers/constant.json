@@ -1,0 +1,12 @@
+{
+  "name": "ConstantInitializer",
+  "description": "Populates EGF and Terrain maps with constant values.",
+  "egfInitializer": {
+    "type": "constant",
+    "value": 128
+  },
+  "terrainInitializer": {
+    "type": "constant",
+    "terrainType": "flat"
+  }
+}

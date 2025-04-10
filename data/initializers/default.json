@@ -1,0 +1,12 @@
+{
+  "name": "DefaultInitializer",
+  "description": "Default initializer with EGF in the middle and flat terrain.",
+  "egfInitializer": {
+    "type": "constant",
+    "value": 128
+  },
+  "terrainInitializer": {
+    "type": "constant",
+    "terrainType": "flat"
+  }
+}

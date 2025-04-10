@@ -6,13 +6,10 @@ import { DB } from '../../debug/DB.js';
 
 export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
 
-export async function initializeCanvas() {
+export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
     DB(DB.DB_INIT, '[Canvas] Initializing canvas...');
-    await Database.initialize('../data/gridConfig.json');
+    await Database.initialize('../data/gridConfig.json', initializerConfigUrl);
     DB(DB.DB_INIT, '[Canvas] Database initialized.');
-
-    Database.initializeForDebug();
-    DB(DB.DB_INIT, '[Canvas] Database debug initialization complete.');
 
     initCanvas();
     DB(DB.DB_INIT, '[Canvas] Canvas initialized.');
@@ -23,7 +20,6 @@ export async function initializeCanvas() {
         const handlersModule = await import('./eventHandlers.js');
         handlersModule.setupEventHandlers({ redrawCanvas });
         DB(DB.DB_INIT, '[Canvas] Event handlers set up.');
-
     } catch (error) {
         DB(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
     }
