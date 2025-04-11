@@ -83,5 +83,24 @@ export const Database = {
         }
 
         D_(DB.DB_INIT, '[Database] EGFMap integrity verified.');
+    },
+
+    // Add an AUT instance to the database
+    addAUTInstance(typeName, x, y) {
+        const type = this.AUTTypes[typeName];
+        if (!type) {
+            throw new Error(`[Database] Unknown AUT type: ${typeName}`);
+        }
+
+        const autInstance = {
+            id: `${typeName}-${Date.now()}`, // Unique ID
+            type: typeName,
+            x,
+            y,
+            properties: { ...type } // Copy properties from the type
+        };
+
+        this.AUTInstances.push(autInstance);
+        D_(DB.DB_INIT, `[Database] Added AUT instance:`, autInstance);
     }
 };

@@ -3,6 +3,7 @@ import { D_, DB } from '../debug/DB.js';
 import { handleEditEGF } from './editors/egfEditor.js';
 import { handleEditTerrain } from './editors/terrainEditor.js';
 import { updateMouseFeedback } from './controlBar.js';
+import { Database } from '../logic/simulator/database/database.js';
 
 export let selectedBrushShape = 'circle';
 export let cursorSize = 20;
@@ -20,7 +21,6 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         D_(DB.UI, `Brush shape explicitly changed to ${selectedBrushShape}`);
     });
 
-
     gameCanvas.addEventListener('mousedown', (e) => {
         e.preventDefault();
         isMouseDown = true;
@@ -34,11 +34,41 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
             handleEditEGF(e, buttonType);
         } else if (editMode === 'Terrain') {
             handleEditTerrain(e, buttonType);
+        } else if (editMode === 'AUT') {
+            handleEditAUT(e, buttonType);
         } else {
             D_(DB.MSE, `Unsupported edit mode: ${editMode}`);
         }
     }
 
+    function handleEditAUT(e, buttonType) {
+        const autTypeSelect = document.getElementById('autTypeSelect');
+        if (!autTypeSelect) {
+            D_(DB.UI, '[EventHandlers] AUT type dropdown not found.');
+            return;
+        }
+
+        const selectedTypes = Array.from(autTypeSelect.selectedOptions).map(option => option.value);
+        if (selectedTypes.length === 0) {
+            D_(DB.UI, '[EventHandlers] No AUT types selected.');
+            return;
+        }
+
+        const canvasAUT = document.getElementById('canvas-AUT');
+        const rect = canvasAUT.getBoundingClientRect();
+        const cellWidth = rect.width / Database.gridConfig.gridWidth;
+        const cellHeight = rect.height / Database.gridConfig.gridHeight;
+
+        const x = Math.floor((e.clientX - rect.left) / cellWidth);
+        const y = Math.floor((e.clientY - rect.top) / cellHeight);
+
+        selectedTypes.forEach(typeName => {
+            Database.addAUTInstance(typeName, x, y);
+        });
+
+        D_(DB.UI, `[EventHandlers] Placed AUTs at (${x}, ${y}):`, selectedTypes);
+        redrawCanvas();
+    }
 
     gameCanvas.addEventListener('mouseup', () => {
         isMouseDown = false;
@@ -103,5 +133,4 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
     });
 
     gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
-
 }
