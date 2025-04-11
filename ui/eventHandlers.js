@@ -47,26 +47,25 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
             D_(DB.UI, '[EventHandlers] AUT type dropdown not found.');
             return;
         }
-
+    
         const selectedTypes = Array.from(autTypeSelect.selectedOptions).map(option => option.value);
         if (selectedTypes.length === 0) {
             D_(DB.UI, '[EventHandlers] No AUT types selected.');
             return;
         }
-
+    
         const canvasAUT = document.getElementById('canvas-AUT');
         const rect = canvasAUT.getBoundingClientRect();
-        const cellWidth = rect.width / Database.gridConfig.gridWidth;
-        const cellHeight = rect.height / Database.gridConfig.gridHeight;
-
-        const x = Math.floor((e.clientX - rect.left) / cellWidth);
-        const y = Math.floor((e.clientY - rect.top) / cellHeight);
-
+    
+        // Calculate pixel coordinates
+        const pixelX = e.clientX - rect.left;
+        const pixelY = e.clientY - rect.top;
+    
         selectedTypes.forEach(typeName => {
-            Database.addAUTInstance(typeName, x, y);
+            Database.addAUTInstance(typeName, pixelX, pixelY);
         });
-
-        D_(DB.UI, `[EventHandlers] Placed AUTs at (${x}, ${y}):`, selectedTypes);
+    
+        D_(DB.UI, `[EventHandlers] Placed AUTs at pixel coordinates (${pixelX}, ${pixelY}):`, selectedTypes);
         redrawCanvas();
     }
 

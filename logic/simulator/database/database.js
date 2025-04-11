@@ -86,7 +86,8 @@ export const Database = {
     },
 
     // Add an AUT instance to the database
-    addAUTInstance(typeName, x, y) {
+    // Add an AUT instance to the database
+    addAUTInstance(typeName, pixelX, pixelY) {
         const type = this.AUTTypes[typeName];
         if (!type) {
             throw new Error(`[Database] Unknown AUT type: ${typeName}`);
@@ -95,12 +96,12 @@ export const Database = {
         const autInstance = {
             id: `${typeName}-${Date.now()}`, // Unique ID
             type: typeName,
-            x,
-            y,
+            x: pixelX, // Store pixel X coordinate
+            y: pixelY, // Store pixel Y coordinate
             properties: { ...type } // Copy properties from the type
         };
 
         this.AUTInstances.push(autInstance);
-        D_(DB.DB_INIT, `[Database] Added AUT instance:`, autInstance);
+        D_(DB.DB_INIT, `[Database] Added AUT instance at pixel coordinates (${pixelX}, ${pixelY}):`, autInstance);
     }
 };
