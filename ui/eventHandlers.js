@@ -78,6 +78,13 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
             ctx.stroke();
         } else if (selectedBrushShape === 'square') {
             ctx.strokeRect(x - cursorSize / 2, y - cursorSize / 2, cursorSize, cursorSize);
+        } else if (selectedBrushShape === 'crosshair') {
+            ctx.beginPath();
+            ctx.moveTo(x - cursorSize / 2, y);
+            ctx.lineTo(x + cursorSize / 2, y);
+            ctx.moveTo(x, y - cursorSize / 2);
+            ctx.lineTo(x, y + cursorSize / 2);
+            ctx.stroke();
         }
 
         // Update mouse feedback

@@ -56,9 +56,7 @@ DB.enabledDB = new Set([
 // Debug levels enabled by default at startup
 DB.onAtStartup = new Set([
     DB.DB_INIT,
-    DB.UI,
-    DB.INIT,
-    DB.EDIT
+    DB.INIT
 ]);
 
 // Currently active debug levels (editable via checkboxes)

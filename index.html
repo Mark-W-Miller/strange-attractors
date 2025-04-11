@@ -33,6 +33,7 @@
                 <select id="brushShape">
                     <option value="circle">Circle Brush</option>
                     <option value="square">Square Brush</option>
+                    <option value="crosshair">Crosshair Brush</option>
                 </select>
             </label>
 
@@ -61,6 +62,12 @@
             <!-- AUT Controls -->
             <div id="autControls" style="display:none;">
                 <strong>AUT Controls</strong>
+                <label>
+                    Select AUT Types:
+                    <select id="autTypeSelect" multiple>
+                        <!-- Options will be dynamically populated -->
+                    </select>
+                </label>
                 <button id="addAutBtn">Add AUT</button>
             </div>
         </div>

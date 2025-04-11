@@ -130,7 +130,13 @@ stopSimulatorBtn.addEventListener('click', () => {
 layerSelect.addEventListener('change', (e) => {
     const mode = e.target.value;
     terrainControls.style.display = mode === 'Terrain' ? 'block' : 'none';
-    console.log(`Switched mode to ${mode}`);
+    document.getElementById('autControls').style.display = mode === 'AUT' ? 'block' : 'none';
+
+    if (mode === 'AUT') {
+        populateAUTTypes();
+    }
+
+    DB(DB.UI, `[ControlBar] Switched mode to ${mode}`);
 });
 
 // Populate initializer dropdown
@@ -169,6 +175,33 @@ async function populateInitializers() {
     } catch (error) {
         DB(DB.DB_INIT, '[ControlBar] Failed to populate initializer dropdown:', error);
     }
+}
+
+// Populate AUT types dropdown
+function populateAUTTypes() {
+    const autTypeSelect = document.getElementById('autTypeSelect');
+    if (!autTypeSelect) {
+        DB(DB.UI, '[ControlBar] AUT types dropdown not found.');
+        return;
+    }
+
+    autTypeSelect.innerHTML = ''; // Clear existing options
+
+    // Filter valid AUT types (those ending in `.aut` or `aut`)
+    const validAUTTypes = Object.entries(Database.AUTTypes).filter(([_, typeData]) => {
+        const isValid = typeData.type.endsWith('.aut') || typeData.type === 'aut';
+        DB(DB.DB_INIT, `[ControlBar] Checking type: ${typeData.type}, isValid: ${isValid}`);
+        return isValid;
+    });
+
+    validAUTTypes.forEach(([name]) => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        autTypeSelect.appendChild(option);
+    });
+
+    DB(DB.DB_INIT, '[ControlBar] AUT types dropdown populated with valid types.', validAUTTypes);
 }
 
 // Load selected initializer
