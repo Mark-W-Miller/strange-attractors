@@ -66,6 +66,7 @@ DB.dbLevelsOn = new Set();
 DB.enable = function (debugClass) {
     if (DB.enabledDB.has(debugClass)) {
         DB.dbLevelsOn.add(debugClass);
+        DB.saveDebugState(); // Save to localStorage
         DB.log(DB.INIT, `[DB] Enabled debug class: ${debugClass}`);
     } else {
         DB.log(DB.INIT, `[DB] Attempted to enable unknown debug class: ${debugClass}`);
@@ -76,6 +77,7 @@ DB.enable = function (debugClass) {
 DB.disable = function (debugClass) {
     if (DB.dbLevelsOn.has(debugClass)) {
         DB.dbLevelsOn.delete(debugClass);
+        DB.saveDebugState(); // Save to localStorage
         DB.log(DB.INIT, `[DB] Disabled debug class: ${debugClass}`);
     }
 };
@@ -85,9 +87,10 @@ DB.isEnabled = function (debugClass) {
     return DB.dbLevelsOn.has(debugClass);
 };
 
-// Initialize dbLevelsOn with onAtStartup
+// Initialize dbLevelsOn with onAtStartup and load from localStorage
 DB.initialize = function () {
     DB.dbLevelsOn = new Set(DB.onAtStartup);
+    DB.loadDebugState(); // Load saved debug levels from localStorage
     DB.log(DB.INIT, '[DB] Initialized active debug levels:', Array.from(DB.dbLevelsOn));
 };
 
@@ -100,6 +103,23 @@ DB.classToString = function (debugClass) {
 DB.log = function (debugClass, ...args) {
     if (DB.dbLevelsOn.has(debugClass)) {
         console.log(`[${debugClass}]`, ...args);
+    }
+};
+
+// Save the current debug state to localStorage
+DB.saveDebugState = function () {
+    const enabledLevels = Array.from(DB.dbLevelsOn);
+    localStorage.setItem('enabledDebugLevels', JSON.stringify(enabledLevels));
+    DB.log(DB.INIT, '[DB] Saved debug levels to localStorage:', enabledLevels);
+};
+
+// Load the debug state from localStorage
+DB.loadDebugState = function () {
+    const savedLevels = localStorage.getItem('enabledDebugLevels');
+    if (savedLevels) {
+        const levels = JSON.parse(savedLevels);
+        levels.forEach(level => DB.dbLevelsOn.add(level));
+        DB.log(DB.INIT, '[DB] Loaded debug levels from localStorage:', levels);
     }
 };
 
