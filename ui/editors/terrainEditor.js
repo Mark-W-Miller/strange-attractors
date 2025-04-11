@@ -62,37 +62,3 @@ export function handleEditTerrain(e, buttonType) {
 
     redrawCanvas();
 }
-
-export function drawTerrain(ctx, width, height) {
-    const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity } = Database.gridConfig;
-    const terrainGridWidth = gridWidth / terrainScaleFactor;
-    const terrainGridHeight = gridHeight / terrainScaleFactor;
-    const cellWidth = width / terrainGridWidth;
-    const cellHeight = height / terrainGridHeight;
-
-    for (let y = 0; y < terrainGridHeight; y++) {
-        for (let x = 0; x < terrainGridWidth; x++) {
-            const terrainType = Database.TerrainMap[y][x];
-            const img = Database.terrainImages[terrainType];
-
-            if (!img || !img.complete) {
-                DB(DB.RND, `[drawTerrain] Missing or incomplete image for terrain type: ${terrainType}`);
-                ctx.fillStyle = `rgba(204, 204, 204, ${terrainOpacity})`; // Fallback color with opacity
-                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-                continue;
-            }
-
-            // Save the current context state
-            ctx.save();
-
-            // Apply opacity
-            ctx.globalAlpha = terrainOpacity;
-
-            // Draw the terrain image
-            ctx.drawImage(img, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-
-            // Restore the context state
-            ctx.restore();
-        }
-    }
-}

@@ -1,7 +1,7 @@
 import { Database } from '../../logic/simulator/database/database.js';
-import { drawEGF } from './editors/egfEditor.js';
-import { drawTerrain } from './editors/terrainEditor.js';
-import { drawAUTs } from './editors/autEditor.js';
+import { drawEGF } from './draw/drawEGF.js';
+import { drawTerrain } from './draw/drawTerrain.js';
+import { drawAUTs } from './draw/drawAUTs.js';
 import { DB } from '../../debug/DB.js';
 
 export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
