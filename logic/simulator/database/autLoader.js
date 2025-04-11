@@ -1,4 +1,6 @@
-export async function loadAUTTypes(directory = '../data/auts') {
+import { D_, DB } from '../../../debug/DB.js';
+
+export async function loadAUTTypes(directory) {
     const allTypes = [];
 
     try {
@@ -27,6 +29,8 @@ export async function loadAUTTypes(directory = '../data/auts') {
                 console.error(`[AUT Loader] Error processing AUT file ${file}:`, error);
             }
         }
+
+        D_(DB.DB_INIT, '[AUT Loader] Raw AUT types loaded:', allTypes);
     } catch (error) {
         console.error(`[AUT Loader] Failed to load AUT types:`, error);
     }
@@ -38,11 +42,18 @@ export function resolveAUTType(typeName, allTypes) {
     const typeParts = typeName.split('.').reverse();
     const resolvedType = {};
 
+    // Process each part of the type name
     for (const part of typeParts) {
         const matchingType = allTypes.find(type => type.type === part);
         if (matchingType) {
             mergeDeep(resolvedType, matchingType); // Merge properties recursively
         }
+    }
+
+    // Finally, merge the compound type itself
+    const compoundType = allTypes.find(type => type.type === typeName);
+    if (compoundType) {
+        mergeDeep(resolvedType, compoundType);
     }
 
     return resolvedType;
@@ -61,6 +72,7 @@ export function buildTypeMap(allTypes) {
         }
     });
 
+    D_(DB.DB_INIT, '[AUT Loader] Processed AUT types:', typeMap);
     return typeMap;
 }
 

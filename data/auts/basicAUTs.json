@@ -10,7 +10,7 @@
         "graphics": {
             "shape": "circle",
             "color": "blue",
-            "size": 10
+            "size": 20
         }
     },
     {
@@ -47,7 +47,8 @@
         "name": "Big Fast Square",
         "type": "big.fast.square.aut",
         "graphics": {
-            "color": "purple"
+            "color": "purple",
+            "size": 40
         }
     }
 ]

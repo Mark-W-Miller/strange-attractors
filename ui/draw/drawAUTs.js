@@ -8,26 +8,31 @@ export function drawAUTs(ctx, width, height) {
     Database.AUTInstances.forEach(({ x, y, properties }) => {
         const { graphics } = properties;
 
+        // Default size if not specified
+        const size = graphics.size || 10;
+
         ctx.fillStyle = graphics.color || 'black';
 
         if (graphics.shape === 'circle') {
             ctx.beginPath();
-            ctx.arc(x, y, 10, 0, Math.PI * 2); // Draw circle at pixel coordinates
+            ctx.arc(x, y, size, 0, Math.PI * 2); // Use size as radius
             ctx.fill();
         } else if (graphics.shape === 'square') {
-            const size = 20;
-            ctx.fillRect(x - size / 2, y - size / 2, size, size); // Draw square at pixel coordinates
+            const diameter = size * 2; // Convert size to diameter
+            ctx.fillRect(x - diameter / 2, y - diameter / 2, diameter, diameter); // Use diameter as width and height
         } else if (graphics.shape === 'triangle') {
-            const size = 20;
+            const diameter = size * 2; // Convert size to diameter
             ctx.beginPath();
-            ctx.moveTo(x, y - size / 2);
-            ctx.lineTo(x - size / 2, y + size / 2);
-            ctx.lineTo(x + size / 2, y + size / 2);
+            ctx.moveTo(x, y - diameter / 2); // Top vertex
+            ctx.lineTo(x - diameter / 2, y + diameter / 2); // Bottom-left vertex
+            ctx.lineTo(x + diameter / 2, y + diameter / 2); // Bottom-right vertex
             ctx.closePath();
             ctx.fill();
+        } else {
+            D_(DB.DRAW, `[drawAUTs] Unknown shape for AUT at (${x}, ${y}):`, graphics.shape);
         }
 
-        D_(DB.DRAW, `[drawAUTs] Rendered AUT at (${x}, ${y}) with properties:`, properties);
+        D_(DB.DRAW, `[drawAUTs] Rendered AUT at (${x}, ${y}) with size=${size} and properties:`, properties);
     });
 
     D_(DB.DRAW, '[drawAUTs] Finished AUT layer drawing.');
