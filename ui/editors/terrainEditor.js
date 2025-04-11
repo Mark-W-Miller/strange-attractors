@@ -1,4 +1,4 @@
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 import { TerrainGrid } from '../../logic/grid.js';
 import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
 import { redrawCanvas } from '../canvas.js';
@@ -37,7 +37,7 @@ export function handleEditTerrain(e, buttonType) {
         for (let x = centerX - radius; x <= centerX + radius; x++) {
             if (y >= 0 && y < terrainGridHeight && x >= 0 && x < terrainGridWidth) {
                 if (!Database.TerrainMap[y]) {
-                    DB(DB.MSE, `Terrain row ${y} explicitly not initialized.`);
+                    D_(DB.MSE, `Terrain row ${y} explicitly not initialized.`);
                     continue;
                 }
 
@@ -55,7 +55,7 @@ export function handleEditTerrain(e, buttonType) {
 
                 Database.TerrainMap[y][x] = selectedTerrainType;
 
-                DB(DB.MSE, `Edited Terrain at (${x}, ${y}) with ${selectedTerrainType}`);
+                D_(DB.MSE, `Edited Terrain at (${x}, ${y}) with ${selectedTerrainType}`);
             }
         }
     }

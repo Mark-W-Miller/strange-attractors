@@ -1,5 +1,5 @@
 // ui/eventHandlers.js
-import { DB } from '../debug/DB.js';
+import { D_, DB } from '../debug/DB.js';
 import { handleEditEGF } from './editors/egfEditor.js';
 import { handleEditTerrain } from './editors/terrainEditor.js';
 import { updateMouseFeedback } from './controlBar.js';
@@ -17,7 +17,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
 
     brushShapeSelect.addEventListener('change', (e) => {
         selectedBrushShape = e.target.value; 
-        DB(DB.UI, `Brush shape explicitly changed to ${selectedBrushShape}`);
+        D_(DB.UI, `Brush shape explicitly changed to ${selectedBrushShape}`);
     });
 
 
@@ -35,7 +35,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         } else if (editMode === 'Terrain') {
             handleEditTerrain(e, buttonType);
         } else {
-            DB(DB.MSE, `Unsupported edit mode: ${editMode}`);
+            D_(DB.MSE, `Unsupported edit mode: ${editMode}`);
         }
     }
 
@@ -48,7 +48,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         e.preventDefault();
         cursorSize += Math.sign(e.deltaY) * 6;
         cursorSize = Math.max(1, Math.min(cursorSize, 500));
-        DB(DB.MSE, `Cursor size changed to ${cursorSize}`);
+        D_(DB.MSE, `Cursor size changed to ${cursorSize}`);
     
         // Immediately redraw cursor after size change
         const event = new MouseEvent('mousemove', {

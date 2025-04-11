@@ -1,5 +1,5 @@
 import { Database } from '../database/database.js';
-import { DB } from '../../../debug/DB.js';
+import { D_, DB } from '../../../debug/DB.js';
 import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas from canvas.js
 
 export const Simulator = {
@@ -9,20 +9,20 @@ export const Simulator = {
 
     start() {
         if (this.isRunning) {
-            DB(DB.EVENTS, '[Simulator] Simulator is already running.');
+            D_(DB.EVENTS, '[Simulator] Simulator is already running.');
             return;
         }
 
         this.isRunning = true;
         this.isPaused = false;
 
-        DB(DB.EVENTS, '[Simulator] Simulator started.');
+        D_(DB.EVENTS, '[Simulator] Simulator started.');
         this.run();
     },
 
     stop() {
         if (!this.isRunning) {
-            DB(DB.EVENTS, '[Simulator] Simulator is not running.');
+            D_(DB.EVENTS, '[Simulator] Simulator is not running.');
             return;
         }
 
@@ -34,12 +34,12 @@ export const Simulator = {
             this.intervalId = null;
         }
 
-        DB(DB.EVENTS, '[Simulator] Simulator stopped.');
+        D_(DB.EVENTS, '[Simulator] Simulator stopped.');
     },
 
     pause() {
         if (!this.isRunning || this.isPaused) {
-            DB(DB.EVENTS, '[Simulator] Simulator is not running or already paused.');
+            D_(DB.EVENTS, '[Simulator] Simulator is not running or already paused.');
             return;
         }
 
@@ -50,7 +50,7 @@ export const Simulator = {
             this.intervalId = null;
         }
 
-        DB(DB.EVENTS, '[Simulator] Simulator paused.');
+        D_(DB.EVENTS, '[Simulator] Simulator paused.');
     },
 
     run() {
@@ -58,7 +58,7 @@ export const Simulator = {
             if (this.isPaused) return;
 
             // Simulation logic goes here
-            DB(DB.EVENTS, '[Simulator] Running simulation step...');
+            D_(DB.EVENTS, '[Simulator] Running simulation step...');
             redrawCanvas(); // Call redrawCanvas directly
         }, 1000 / 60); // 60 FPS
     }

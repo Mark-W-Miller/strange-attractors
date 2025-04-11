@@ -1,4 +1,4 @@
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 
 
 export function drawAUTs(ctx, width, height) {
@@ -10,5 +10,5 @@ export function drawAUTs(ctx, width, height) {
     ctx.arc(width / 2, height / 2, 10, 0, Math.PI * 2); // centered blue dot
     ctx.fill();
 
-    DB(DB.UI, 'AUT Canvas explicitly drawn with test blue dot.');
+    D_(DB.UI, 'AUT Canvas explicitly drawn with test blue dot.');
 }

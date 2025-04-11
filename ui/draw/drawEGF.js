@@ -1,12 +1,12 @@
 import { Database } from '../../logic/simulator/database/database.js';
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 
 export function drawEGF(ctx, width, height) {
     const { gridWidth, gridHeight, gridLineColors } = Database.gridConfig;
     const cellSize = Math.min(width / gridWidth, height / gridHeight);
 
-    DB(DB.DRAW, '[drawEGF] Starting EGF layer drawing...');
-    DB(DB.DRAW, '[drawEGF] Grid dimensions:', { gridWidth, gridHeight, cellSize });
+    D_(DB.DRAW, '[drawEGF] Starting EGF layer drawing...');
+    D_(DB.DRAW, '[drawEGF] Grid dimensions:', { gridWidth, gridHeight, cellSize });
 
     // Draw grayscale based on EGFMap values
     for (let y = 0; y < gridHeight; y++) {
@@ -35,5 +35,5 @@ export function drawEGF(ctx, width, height) {
         ctx.stroke();
     }
 
-    DB(DB.DRAW, '[drawEGF] Finished EGF layer drawing.');
+    D_(DB.DRAW, '[drawEGF] Finished EGF layer drawing.');
 }

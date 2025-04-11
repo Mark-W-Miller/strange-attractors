@@ -1,5 +1,5 @@
 import { Database } from '../../logic/simulator/database/database.js';
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 import { Simulator } from '../../logic/simulator/engine/simulator.js';
 import { initializeCanvas } from './canvas.js';
 
@@ -20,11 +20,11 @@ const canvasContainer = document.getElementById('canvas-container');
 // Update mouse feedback dynamically
 export function updateMouseFeedback(e) {
     if (!Database.gridConfig) {
-        DB(DB.FEEDBACK, '[MouseFeedback] Database.gridConfig is not initialized yet.');
+        D_(DB.FEEDBACK, '[MouseFeedback] Database.gridConfig is not initialized yet.');
         return;
     }
 
-    DB(DB.FEEDBACK, '[MouseFeedback] Processing mouse event:', e.clientX, e.clientY);
+    D_(DB.FEEDBACK, '[MouseFeedback] Processing mouse event:', e.clientX, e.clientY);
 
     const canvasEGF = document.getElementById('canvas-EGF');
     const canvasTerrain = document.getElementById('canvas-Terrain');
@@ -40,7 +40,7 @@ export function updateMouseFeedback(e) {
     const adjustedXTerrain = e.clientX - rectTerrain.left;
     const adjustedYTerrain = e.clientY - rectTerrain.top;
 
-    DB(DB.FEEDBACK, '[MouseFeedback] Adjusted coordinates:', {
+    D_(DB.FEEDBACK, '[MouseFeedback] Adjusted coordinates:', {
         adjustedXEGF,
         adjustedYEGF,
         adjustedXTerrain,
@@ -54,7 +54,7 @@ export function updateMouseFeedback(e) {
     const cellWidthTerrain = rectTerrain.width / (Database.gridConfig.gridWidth / Database.gridConfig.terrainScaleFactor);
     const cellHeightTerrain = rectTerrain.height / (Database.gridConfig.gridHeight / Database.gridConfig.terrainScaleFactor);
 
-    DB(DB.FEEDBACK, '[MouseFeedback] Cell sizes:', {
+    D_(DB.FEEDBACK, '[MouseFeedback] Cell sizes:', {
         cellWidthEGF,
         cellHeightEGF,
         cellWidthTerrain,
@@ -83,7 +83,7 @@ export function updateMouseFeedback(e) {
         }
     }
 
-    DB(DB.FEEDBACK, '[MouseFeedback] EGF feedback:', { egfI, egfJ, egfValue });
+    D_(DB.FEEDBACK, '[MouseFeedback] EGF feedback:', { egfI, egfJ, egfValue });
 
     // Check if the Terrain layer is visible
     if (canvasTerrain.style.display !== 'none') {
@@ -99,7 +99,7 @@ export function updateMouseFeedback(e) {
         }
     }
 
-    DB(DB.FEEDBACK, '[MouseFeedback] Terrain feedback:', { terrainI, terrainJ, terrainType });
+    D_(DB.FEEDBACK, '[MouseFeedback] Terrain feedback:', { terrainI, terrainJ, terrainType });
 
     // Update the mouse feedback section
     mouseInfo.innerHTML = `
@@ -113,17 +113,17 @@ export function updateMouseFeedback(e) {
 
 // Add event listeners for simulator controls
 startSimulatorBtn.addEventListener('click', () => {
-    DB(DB.EVENTS, '[ControlBar] Start button clicked.');
+    D_(DB.EVENTS, '[ControlBar] Start button clicked.');
     Simulator.start();
 });
 
 pauseSimulatorBtn.addEventListener('click', () => {
-    DB(DB.EVENTS, '[ControlBar] Pause button clicked.');
+    D_(DB.EVENTS, '[ControlBar] Pause button clicked.');
     Simulator.pause();
 });
 
 stopSimulatorBtn.addEventListener('click', () => {
-    DB(DB.EVENTS, '[ControlBar] Stop button clicked.');
+    D_(DB.EVENTS, '[ControlBar] Stop button clicked.');
     Simulator.stop();
 });
 
@@ -136,20 +136,20 @@ layerSelect.addEventListener('change', (e) => {
         populateAUTTypes();
     }
 
-    DB(DB.UI, `[ControlBar] Switched mode to ${mode}`);
+    D_(DB.UI, `[ControlBar] Switched mode to ${mode}`);
 });
 
 // Populate initializer dropdown
 async function populateInitializers() {
     try {
-        DB(DB.DB_INIT, '[ControlBar] Fetching initializer files...');
+        D_(DB.DB_INIT, '[ControlBar] Fetching initializer files...');
         const response = await fetch('../data/initializers/initializers.json'); // Fetch the JSON file containing the list of initializers
         if (!response.ok) {
             throw new Error(`[ControlBar] Failed to fetch initializers: ${response.statusText}`);
         }
 
         const files = await response.json(); // Parse the JSON array
-        DB(DB.UI, '[ControlBar] Initializer files fetched:', files);
+        D_(DB.UI, '[ControlBar] Initializer files fetched:', files);
 
         initializerSelect.innerHTML = ''; // Clear existing options
 
@@ -165,15 +165,15 @@ async function populateInitializers() {
                 option.value = `../data/initializers/${file}`;
                 option.textContent = initializerConfig.name || file.replace('.json', ''); // Use the `name` field or fallback to the filename
                 initializerSelect.appendChild(option);
-                DB(DB.DB_INIT, `[ControlBar] Added initializer option: ${initializerConfig.name || file}`);
+                D_(DB.DB_INIT, `[ControlBar] Added initializer option: ${initializerConfig.name || file}`);
             } catch (error) {
-                DB(DB.DB_INIT, `[ControlBar] Error processing initializer file: ${file}`, error);
+                D_(DB.DB_INIT, `[ControlBar] Error processing initializer file: ${file}`, error);
             }
         }
 
-        DB(DB.DB_INIT, '[ControlBar] Initializer dropdown populated.');
+        D_(DB.DB_INIT, '[ControlBar] Initializer dropdown populated.');
     } catch (error) {
-        DB(DB.DB_INIT, '[ControlBar] Failed to populate initializer dropdown:', error);
+        D_(DB.DB_INIT, '[ControlBar] Failed to populate initializer dropdown:', error);
     }
 }
 
@@ -181,7 +181,7 @@ async function populateInitializers() {
 function populateAUTTypes() {
     const autTypeSelect = document.getElementById('autTypeSelect');
     if (!autTypeSelect) {
-        DB(DB.UI, '[ControlBar] AUT types dropdown not found.');
+        D_(DB.UI, '[ControlBar] AUT types dropdown not found.');
         return;
     }
 
@@ -190,7 +190,7 @@ function populateAUTTypes() {
     // Filter valid AUT types (those ending in `.aut` or `aut`)
     const validAUTTypes = Object.entries(Database.AUTTypes).filter(([_, typeData]) => {
         const isValid = typeData.type.endsWith('.aut') || typeData.type === 'aut';
-        DB(DB.DB_INIT, `[ControlBar] Checking type: ${typeData.type}, isValid: ${isValid}`);
+        D_(DB.DB_INIT, `[ControlBar] Checking type: ${typeData.type}, isValid: ${isValid}`);
         return isValid;
     });
 
@@ -201,14 +201,14 @@ function populateAUTTypes() {
         autTypeSelect.appendChild(option);
     });
 
-    DB(DB.DB_INIT, '[ControlBar] AUT types dropdown populated with valid types.', validAUTTypes);
+    D_(DB.DB_INIT, '[ControlBar] AUT types dropdown populated with valid types.', validAUTTypes);
 }
 
 // Load selected initializer
 initializerSelect.addEventListener('change', async (e) => {
     const initializerConfigUrl = e.target.value;
     await initializeCanvas(initializerConfigUrl);
-    DB(DB.UI, `[ControlBar] Loaded initializer: ${initializerConfigUrl}`);
+    D_(DB.UI, `[ControlBar] Loaded initializer: ${initializerConfigUrl}`);
 });
 
 // Populate initializers on load

@@ -1,4 +1,4 @@
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
 import { redrawCanvas } from '../canvas.js';
 import { Database } from '../../logic/simulator/database/database.js';
@@ -19,7 +19,7 @@ export function handleEditEGF(e, buttonType) {
         for (let x = centerX - radius; x <= centerX + radius; x++) {
             if (y >= 0 && y < Database.gridConfig.gridHeight && x >= 0 && x < Database.gridConfig.gridWidth) {
                 if (!Database.EGFMap[y]) {
-                    DB(DB.MSE, `EGF row ${y} explicitly not initialized.`);
+                    D_(DB.MSE, `EGF row ${y} explicitly not initialized.`);
                     continue;
                 }
 
@@ -41,7 +41,7 @@ export function handleEditEGF(e, buttonType) {
                     Database.EGFMap[y][x] = Math.min(255, Database.EGFMap[y][x] + 10); // Increase value, max 255
                 }
 
-                DB(DB.MSE, `Edited EGF at (${x}, ${y}) to ${Database.EGFMap[y][x]}`);
+                D_(DB.MSE, `Edited EGF at (${x}, ${y}) to ${Database.EGFMap[y][x]}`);
             }
         }
     }

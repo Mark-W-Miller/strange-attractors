@@ -2,26 +2,26 @@ import { Database } from '../../logic/simulator/database/database.js';
 import { drawEGF } from './draw/drawEGF.js';
 import { drawTerrain } from './draw/drawTerrain.js';
 import { drawAUTs } from './draw/drawAUTs.js';
-import { DB } from '../../debug/DB.js';
+import { D_, DB } from '../../debug/DB.js';
 
 export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
 
 export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
-    DB(DB.DB_INIT, '[Canvas] Initializing canvas...');
+    D_(DB.DB_INIT, '[Canvas] Initializing canvas...');
     await Database.initialize('../data/gridConfig.json', initializerConfigUrl);
-    DB(DB.DB_INIT, '[Canvas] Database initialized.');
+    D_(DB.DB_INIT, '[Canvas] Database initialized.');
 
     initCanvas();
-    DB(DB.DB_INIT, '[Canvas] Canvas initialized.');
+    D_(DB.DB_INIT, '[Canvas] Canvas initialized.');
 
     window.addEventListener('resize', handleResize);
 
     try {
         const handlersModule = await import('./eventHandlers.js');
         handlersModule.setupEventHandlers({ redrawCanvas });
-        DB(DB.DB_INIT, '[Canvas] Event handlers set up.');
+        D_(DB.DB_INIT, '[Canvas] Event handlers set up.');
     } catch (error) {
-        DB(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
+        D_(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
     }
 }
 

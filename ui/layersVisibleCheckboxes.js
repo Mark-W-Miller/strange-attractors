@@ -1,4 +1,4 @@
-import { DB } from '../debug/DB.js';
+import { D_, DB } from '../debug/DB.js';
 import { redrawCanvas } from './canvas.js';
 
 const layers = ['EGF', 'Terrain', 'AUT'];
@@ -41,13 +41,13 @@ export function createLayerCheckboxes() {
 }
 
 function setLayerVisibility(layer, isVisible) {
-    DB(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
+    D_(DB.RND, `Layer ${layer} visibility set to:`, isVisible);
 
     // Explicitly handle canvas visibility
     const canvas = document.getElementById(`canvas-${layer}`);
     if (canvas) {
         canvas.style.display = isVisible ? 'block' : 'none';
     } else {
-        DB(DB.RND, `Canvas not found explicitly for layer: ${layer}`);
+        D_(DB.RND, `Canvas not found explicitly for layer: ${layer}`);
     }
 }

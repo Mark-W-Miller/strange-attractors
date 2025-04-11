@@ -1,4 +1,4 @@
-import { DB } from '../../../debug/DB.js';
+import { D_, DB } from '../../../debug/DB.js';
 import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
 import { loadAUTTypes, buildTypeMap } from './autLoader.js';
 
@@ -12,17 +12,17 @@ export const Database = {
     AUTInstances: [], // Store AUT instances here
 
     async initialize(gridConfigUrl, initializerConfigUrl) {
-        DB(DB.DB_INIT, '[Database] Starting initialization...');
+        D_(DB.DB_INIT, '[Database] Starting initialization...');
         try {
             // Load grid configuration
             const gridResponse = await fetch(gridConfigUrl);
             this.gridConfig = await gridResponse.json();
-            DB(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
+            D_(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
 
             // Load initializer configuration
             const initializerResponse = await fetch(initializerConfigUrl);
             const initializerConfig = await initializerResponse.json();
-            DB(DB.DB_INIT, '[Database] Initializer config loaded:', initializerConfig);
+            D_(DB.DB_INIT, '[Database] Initializer config loaded:', initializerConfig);
 
             // Initialize EGFMap and TerrainMap
             this.EGFMap = initializeEGFMap(initializerConfig.egfInitializer, this.gridConfig.gridWidth, this.gridConfig.gridHeight);
@@ -36,11 +36,11 @@ export const Database = {
             // Load and resolve AUT types
             const allTypes = await loadAUTTypes('../data/auts');
             this.AUTTypes = buildTypeMap(allTypes);
-            DB(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
+            D_(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
 
             // Debug: List all resolved types
             Object.entries(this.AUTTypes).forEach(([name, type]) => {
-                DB(DB.DB_INIT, `[Database] Resolved AUT Type: ${name}`, type);
+                D_(DB.DB_INIT, `[Database] Resolved AUT Type: ${name}`, type);
             });
 
             // Load terrain images
@@ -49,9 +49,9 @@ export const Database = {
             // Verify EGFMap integrity
             this.verifyEGFMap();
 
-            DB(DB.DB_INIT, '[Database] Initialization complete.');
+            D_(DB.DB_INIT, '[Database] Initialization complete.');
         } catch (error) {
-            DB(DB.DB_INIT, '[Database] Failed to initialize:', error);
+            D_(DB.DB_INIT, '[Database] Failed to initialize:', error);
         }
     },
 
@@ -66,7 +66,7 @@ export const Database = {
             });
             this.terrainImages[type] = img;
         }
-        DB(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
+        D_(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
     },
 
     verifyEGFMap() {
@@ -82,6 +82,6 @@ export const Database = {
             }
         }
 
-        DB(DB.DB_INIT, '[Database] EGFMap integrity verified.');
+        D_(DB.DB_INIT, '[Database] EGFMap integrity verified.');
     }
 };

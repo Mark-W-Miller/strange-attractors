@@ -1,4 +1,4 @@
-import { DB } from '../../../../debug/DB.js';
+import { D_, DB } from '../../../../debug/DB.js';
 
 export function initializeEGFMap(config, gridWidth, gridHeight) {
     let EGFMap;
@@ -40,7 +40,7 @@ function initializeRandomEGFMap(config, gridWidth, gridHeight) {
             Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
         )
     );
-    DB(DB.DB_INIT, '[Initializer] EGFMap initialized with random values.');
+    D_(DB.DB_INIT, '[Initializer] EGFMap initialized with random values.');
     return EGFMap;
 }
 
@@ -50,7 +50,7 @@ function initializeConstantEGFMap(config, gridWidth, gridHeight) {
     const EGFMap = Array.from({ length: gridHeight }, () =>
         Array.from({ length: gridWidth }, () => value)
     );
-    DB(DB.DB_INIT, '[Initializer] EGFMap initialized with constant values.');
+    D_(DB.DB_INIT, '[Initializer] EGFMap initialized with constant values.');
     return EGFMap;
 }
 
@@ -68,7 +68,7 @@ function initializeGradientEGFMap(config, gridWidth, gridHeight) {
         })
     );
 
-    DB(DB.DB_INIT, '[Initializer] EGFMap initialized with gradient values.');
+    D_(DB.DB_INIT, '[Initializer] EGFMap initialized with gradient values.');
     return EGFMap;
 }
 
@@ -81,13 +81,13 @@ function initializePeaksValleysEGFMap(config, gridWidth, gridHeight) {
         Array.from({ length: gridWidth }, () => midValue)
     );
 
-    DB(DB.DB_INIT, `[Initializer] Starting Peaks and Valleys initialization with midValue: ${midValue}`);
-    DB(DB.DB_INIT, `[Initializer] Grid dimensions: ${gridWidth}x${gridHeight}`);
-    DB(DB.DB_INIT, `[Initializer] Points:`, points);
+    D_(DB.DB_INIT, `[Initializer] Starting Peaks and Valleys initialization with midValue: ${midValue}`);
+    D_(DB.DB_INIT, `[Initializer] Grid dimensions: ${gridWidth}x${gridHeight}`);
+    D_(DB.DB_INIT, `[Initializer] Points:`, points);
 
     // Apply peaks and valleys
     points.forEach(({ x, y, value }, index) => {
-        DB(DB.DB_INIT, `[Initializer] Processing point ${index + 1}: (${x}, ${y}) with value ${value}`);
+        D_(DB.DB_INIT, `[Initializer] Processing point ${index + 1}: (${x}, ${y}) with value ${value}`);
         for (let i = 0; i < gridHeight; i++) {
             for (let j = 0; j < gridWidth; j++) {
                 const distance = Math.sqrt((i - y) ** 2 + (j - x) ** 2);
@@ -101,13 +101,13 @@ function initializePeaksValleysEGFMap(config, gridWidth, gridHeight) {
 
                 // Debugging for specific cells
                 if (distance < 5) { // Log only for cells within a small distance for clarity
-                    DB(DB.DB_INIT, `[Initializer] Cell (${j}, ${i}): distance=${distance.toFixed(2)}, influence=${influence.toFixed(2)}, delta=${delta.toFixed(2)}, newValue=${EGFMap[i][j]}`);
+                    D_(DB.DB_INIT, `[Initializer] Cell (${j}, ${i}): distance=${distance.toFixed(2)}, influence=${influence.toFixed(2)}, delta=${delta.toFixed(2)}, newValue=${EGFMap[i][j]}`);
                 }
             }
         }
     });
 
-    DB(DB.DB_INIT, '[Initializer] EGFMap initialized with peaks and valleys.');
+    D_(DB.DB_INIT, '[Initializer] EGFMap initialized with peaks and valleys.');
     return EGFMap;
 }
 
@@ -125,7 +125,7 @@ export function initializeTerrainMap(config, gridWidth, gridHeight, scaleFactor)
                 TerrainMap[y][x] = terrainTypes[Math.floor(Math.random() * terrainTypes.length)];
             }
         }
-        DB(DB.DB_INIT, '[Initializer] TerrainMap initialized with random terrain types.');
+        D_(DB.DB_INIT, '[Initializer] TerrainMap initialized with random terrain types.');
     } else if (config.type === 'constant') {
         const { terrainType } = config;
         for (let y = 0; y < terrainGridHeight; y++) {
@@ -133,7 +133,7 @@ export function initializeTerrainMap(config, gridWidth, gridHeight, scaleFactor)
                 TerrainMap[y][x] = terrainType;
             }
         }
-        DB(DB.DB_INIT, '[Initializer] TerrainMap initialized with constant terrain type.');
+        D_(DB.DB_INIT, '[Initializer] TerrainMap initialized with constant terrain type.');
     } else if (config.type === 'alternating') {
         const { terrainTypes } = config;
         for (let y = 0; y < terrainGridHeight; y++) {
@@ -141,7 +141,7 @@ export function initializeTerrainMap(config, gridWidth, gridHeight, scaleFactor)
                 TerrainMap[y][x] = terrainTypes[(x + y) % terrainTypes.length];
             }
         }
-        DB(DB.DB_INIT, '[Initializer] TerrainMap initialized with alternating terrain types.');
+        D_(DB.DB_INIT, '[Initializer] TerrainMap initialized with alternating terrain types.');
     }
 
     // Verify that the TerrainMap is valid

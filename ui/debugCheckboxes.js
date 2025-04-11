@@ -1,10 +1,10 @@
 // ui/debugCheckboxes.js
-import { DB } from '../debug/DB.js';
+import { D_, DB } from '../debug/DB.js';
 
 export function populateDebugCheckboxes() {
     const debugCheckboxes = document.getElementById('debugCheckboxes');
     if (!debugCheckboxes) {
-        DB(DB.INIT, '[DebugCheckboxes] Debug checkboxes container not found.');
+        D_(DB.INIT, '[DebugCheckboxes] Debug checkboxes container not found.');
         return;
     }
 
@@ -35,5 +35,5 @@ export function populateDebugCheckboxes() {
         debugCheckboxes.appendChild(label);
     }
 
-    DB(DB.INIT, '[DebugCheckboxes] Debug options populated.');
+    D_(DB.INIT, '[DebugCheckboxes] Debug options populated.');
 }
