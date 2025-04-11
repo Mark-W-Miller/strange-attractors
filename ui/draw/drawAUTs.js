@@ -1,9 +1,13 @@
 import { Database } from '../../logic/simulator/database/database.js';
+import { DB } from '../../debug/DB.js';
 
 export function drawAUTs(ctx, width, height) {
     const { gridWidth, gridHeight } = Database.gridConfig;
     const cellWidth = width / gridWidth;
     const cellHeight = height / gridHeight;
+
+    DB(DB.DRAW, '[drawAUTs] Starting AUT layer drawing...');
+    DB(DB.DRAW, '[drawAUTs] Grid dimensions:', { gridWidth, gridHeight, cellWidth, cellHeight });
 
     Database.AUTInstances.forEach(({ x, y, properties }) => {
         const { graphics } = properties;
@@ -29,4 +33,6 @@ export function drawAUTs(ctx, width, height) {
             ctx.fill();
         }
     });
+
+    DB(DB.DRAW, '[drawAUTs] Finished AUT layer drawing.');
 }

@@ -1,4 +1,5 @@
 import { Database } from '../../logic/simulator/database/database.js';
+import { DB } from '../../debug/DB.js';
 
 export function drawTerrain(ctx, width, height) {
     const { gridWidth, gridHeight, terrainScaleFactor, terrainOpacity, gridLineColors } = Database.gridConfig;
@@ -6,6 +7,9 @@ export function drawTerrain(ctx, width, height) {
     const terrainGridHeight = gridHeight / terrainScaleFactor;
     const cellWidth = width / terrainGridWidth;
     const cellHeight = height / terrainGridHeight;
+
+    DB(DB.DRAW, '[drawTerrain] Starting Terrain layer drawing...');
+    DB(DB.DRAW, '[drawTerrain] Terrain grid dimensions:', { terrainGridWidth, terrainGridHeight, cellWidth, cellHeight });
 
     ctx.globalAlpha = terrainOpacity;
 
@@ -42,4 +46,6 @@ export function drawTerrain(ctx, width, height) {
         ctx.lineTo(terrainGridWidth * cellWidth, y * cellHeight);
         ctx.stroke();
     }
+
+    DB(DB.DRAW, '[drawTerrain] Finished Terrain layer drawing.');
 }

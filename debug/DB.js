@@ -37,6 +37,7 @@ DB.CANVAS = 'CANVAS';
 DB.EDIT = 'EDIT';
 DB.FEEDBACK = 'FEEDBACK';
 DB.EVENTS = 'EVENTS';
+DB.DRAW = 'DRAW'; // New debug level for drawing routines
 
 // All available debug levels (static, non-editable)
 DB.enabledDB = new Set([
@@ -50,7 +51,8 @@ DB.enabledDB = new Set([
     DB.CANVAS,
     DB.EDIT,
     DB.FEEDBACK,
-    DB.EVENTS
+    DB.EVENTS,
+    DB.DRAW // Add DRAW to the enabled debug levels
 ]);
 
 // Debug levels enabled by default at startup
