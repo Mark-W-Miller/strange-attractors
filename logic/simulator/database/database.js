@@ -1,5 +1,6 @@
 import { DB } from '../../../debug/DB.js';
 import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
+import { loadAUTTypes, buildTypeMap } from './autLoader.js';
 
 export const Database = {
     gridConfig: null,
@@ -7,6 +8,8 @@ export const Database = {
     TerrainMap: [],
     terrainTypes: ['flat', 'wall', 'rough', 'water'],
     terrainImages: {},
+    AUTTypes: {}, // Store resolved AUT types here
+    AUTInstances: [], // Store AUT instances here
 
     async initialize(gridConfigUrl, initializerConfigUrl) {
         DB(DB.DB_INIT, '[Database] Starting initialization...');
@@ -29,6 +32,16 @@ export const Database = {
                 this.gridConfig.gridHeight,
                 this.gridConfig.terrainScaleFactor
             );
+
+            // Load and resolve AUT types
+            const allTypes = await loadAUTTypes('../data/auts');
+            this.AUTTypes = buildTypeMap(allTypes);
+            DB(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
+
+            // Debug: List all resolved types
+            Object.entries(this.AUTTypes).forEach(([name, type]) => {
+                DB(DB.DB_INIT, `[Database] Resolved AUT Type: ${name}`, type);
+            });
 
             // Load terrain images
             await this.loadTerrainImages();

@@ -1,0 +1,53 @@
+[
+    {
+        "name": "Basic",
+        "type": "aut",
+        "maxSpeed": 5,
+        "physics": {
+            "mass": 1,
+            "maxSpeed": 10
+        },
+        "graphics": {
+            "shape": "circle",
+            "color": "blue",
+            "size": 10
+        }
+    },
+    {
+        "name": "Fast",
+        "type": "fast",
+        "physics": {
+            "maxSpeed": 30
+        }
+    },
+    {
+        "name": "Big",
+        "type": "big",
+        "physics": {
+            "mass": 5
+        }
+    },
+    {
+        "name": "Square",
+        "type": "square",
+        "graphics": {
+            "shape": "square",
+            "color": "red"
+        }
+    },
+    {
+        "name": "Triangle",
+        "type": "triangle",
+        "graphics": {
+            "shape": "triangle",
+            "color": "yellow"
+        }
+    },
+    {
+        "name": "Big Fast Square",
+        "type": "big.fast.square.aut",
+        "graphics": {
+            "color": "purple"
+        }
+    }
+]

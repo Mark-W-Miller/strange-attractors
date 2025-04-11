@@ -58,9 +58,7 @@ DB.onAtStartup = new Set([
     DB.DB_INIT,
     DB.UI,
     DB.INIT,
-    DB.EDIT,
-    DB.FEEDBACK,
-    DB.EVENTS
+    DB.EDIT
 ]);
 
 // Currently active debug levels (editable via checkboxes)
