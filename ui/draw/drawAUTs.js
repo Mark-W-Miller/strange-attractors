@@ -12,6 +12,10 @@ export function drawAUTs(ctx, width, height) {
     D_(DB.DRAW, `[drawAUTs] Arena dimensions: arenaWidth=${arenaWidth}, arenaHeight=${arenaHeight}`);
     D_(DB.DRAW, `[drawAUTs] Cell dimensions: cellWidth=${cellWidth.toFixed(2)}, cellHeight=${cellHeight.toFixed(2)}`);
 
+    // Combine permanent and temporary AUTs, then sort by size (largest first)
+    const allAUTs = [...Database.AUTInstances, ...(window.tempAUTPlacements || [])];
+    allAUTs.sort((a, b) => b.properties.graphics.size - a.properties.graphics.size);
+
     // Helper function to draw a single AUT
     const drawAUT = ({ posX, posY, properties }) => {
         const { graphics } = properties;
@@ -52,11 +56,8 @@ export function drawAUTs(ctx, width, height) {
         }
     };
 
-    // Draw permanent AUTs
-    Database.AUTInstances.forEach(drawAUT);
-
-    // Draw temporary AUTs
-    (window.tempAUTPlacements || []).forEach(drawAUT);
+    // Draw all AUTs
+    allAUTs.forEach(drawAUT);
 
     D_(DB.DRAW, '[drawAUTs] Finished rendering AUT layer.');
 }
