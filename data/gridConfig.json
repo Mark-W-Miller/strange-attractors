@@ -9,5 +9,6 @@
     "Terrain": "#AAAAAA"
   },
   "initialARV": 0,
+  "influenceRadius": 5,
   "defaultTerrainType": "flat"
 }

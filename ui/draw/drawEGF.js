@@ -11,7 +11,7 @@ export function drawEGF(ctx, width, height) {
     // Draw grayscale based on EGFMap values
     for (let y = 0; y < gridHeight; y++) {
         for (let x = 0; x < gridWidth; x++) {
-            const arv = Database.EGFMap[y][x]; // Use EGFMap values directly (0 to 255)
+            const arv = Database.getEGFValue(x, y); // Use getter
             ctx.fillStyle = `rgb(${arv},${arv},${arv})`;
             ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
         }

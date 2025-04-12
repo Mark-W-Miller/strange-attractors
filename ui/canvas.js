@@ -2,9 +2,10 @@ import { Database } from '../../logic/simulator/database/database.js';
 import { drawEGF } from './draw/drawEGF.js';
 import { drawTerrain } from './draw/drawTerrain.js';
 import { drawAUTs } from './draw/drawAUTs.js';
+import { drawGVs } from './draw/drawGVs.js'; // Import for Gravity Vectors
 import { D_, DB } from '../../debug/DB.js';
 
-export const layers = ['EGF', 'Terrain', 'AUT']; // explicitly define layers
+export const layers = ['EGF', 'Terrain', 'AUT', 'GV']; // Centralized layers array
 
 export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
     D_(DB.DB_INIT, '[Canvas] Initializing canvas...');
@@ -43,18 +44,21 @@ function drawLayer(layer) {
 
     try {
         switch (layer) {
-            case 'EGF':
-                drawEGF(ctx, canvas.width, canvas.height);
-                break;
             case 'Terrain':
                 drawTerrain(ctx, canvas.width, canvas.height);
+                break;
+            case 'GV': // Gravity Vectors layer
+                drawGVs(ctx, canvas.width, canvas.height); 
+                break;
+            case 'EGF':
+                drawEGF(ctx, canvas.width, canvas.height);
                 break;
             case 'AUT':
                 drawAUTs(ctx, canvas.width, canvas.height);
                 break;
         }
     } catch (error) {
-        console.error(`Error drawing layer ${layer}:`, error);
+        D_(DB.ERROR, `Error drawing layer ${layer}: ${error.message}`);
     }
 }
 

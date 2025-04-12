@@ -1,11 +1,8 @@
 import { D_, DB } from '../debug/DB.js';
-import { redrawCanvas } from './canvas.js';
+import { redrawCanvas, layers } from './canvas.js'; // Import layers from canvas.js
 
-const layers = ['EGF', 'Terrain', 'AUT'];
-const layersVisible = new Set(['EGF', 'Terrain', 'AUT']); // Initially: all layers visible
-
+const layersVisible = new Set(layers); // Initially: all layers visible
 const container = document.getElementById('layersVisibleCheckboxes');
-
 
 export function createLayerCheckboxes() {
     container.innerHTML = ''; // Clear existing checkboxes first

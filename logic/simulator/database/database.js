@@ -1,17 +1,20 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
 import { loadAUTTypes, buildTypeMap } from './autLoader.js';
+import { initializeGravityVectorArray } from './physics/gravity.js';
 
 export const Database = {
     gridConfig: null,
     scaledGridWidth: null,
     scaledGridHeight: null,
-    EGFMap: [],
+    _EGFMap: [], // Make EGFMap private
+    GravityVectorArray: [], // Shadow array for gravity vectors
     TerrainMap: [],
     terrainTypes: ['flat', 'wall', 'rough', 'water'],
     terrainImages: {},
     AUTTypes: {}, // Store resolved AUT types here
     AUTInstances: [], // Store AUT instances here
+    listeners: [], // List of listeners for data changes
 
     async initialize(gridConfigUrl, initializerConfigUrl) {
         D_(DB.DB_INIT, '[Database] Starting initialization...');
@@ -32,7 +35,8 @@ export const Database = {
             D_(DB.DB_INIT, '[Database] Initializer config loaded:', initializerConfig);
 
             // Initialize EGFMap and TerrainMap
-            this.EGFMap = initializeEGFMap(initializerConfig.egfInitializer, this.gridConfig.gridWidth, this.gridConfig.gridHeight);
+            this._EGFMap = initializeEGFMap(initializerConfig.egfInitializer, this.gridConfig.gridWidth, this.gridConfig.gridHeight);
+            this.verifyEGFMap(); // Validate the EGFMap
             this.TerrainMap = initializeTerrainMap(
                 initializerConfig.terrainInitializer,
                 this.gridConfig.gridWidth,
@@ -57,8 +61,11 @@ export const Database = {
             // Load terrain images
             await this.loadTerrainImages();
 
-            // Verify EGFMap integrity
-            this.verifyEGFMap();
+            // Initialize Gravity Vector Array
+            this.GravityVectorArray = initializeGravityVectorArray(this.gridConfig, this._EGFMap);
+
+            // Log debugging information
+            this.logDebugInfo();
 
             D_(DB.DB_INIT, '[Database] Initialization complete.');
         } catch (error) {
@@ -83,20 +90,29 @@ export const Database = {
     verifyEGFMap() {
         const { gridWidth, gridHeight } = this.gridConfig;
 
-        if (!this.EGFMap || this.EGFMap.length !== gridHeight) {
-            throw new Error(`[Database] EGFMap has an invalid number of rows: ${this.EGFMap?.length || 0}`);
+        if (!this._EGFMap || this._EGFMap.length !== gridHeight) {
+            throw new Error(`[Database] EGFMap has an invalid number of rows: ${this._EGFMap?.length || 0}`);
         }
 
         for (let y = 0; y < gridHeight; y++) {
-            if (!this.EGFMap[y] || this.EGFMap[y].length !== gridWidth) {
-                throw new Error(`[Database] EGFMap row ${y} has an invalid number of columns: ${this.EGFMap[y]?.length || 0}`);
+            if (!this._EGFMap[y] || this._EGFMap[y].length !== gridWidth) {
+                throw new Error(`[Database] EGFMap row ${y} has an invalid number of columns: ${this._EGFMap[y]?.length || 0}`);
             }
         }
 
         D_(DB.DB_INIT, '[Database] EGFMap integrity verified.');
     },
 
-    // Add an AUT instance to the database
+    logDebugInfo() {
+        D_(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
+        D_(DB.DB_INIT, `[Database] Scaled grid dimensions: ${this.scaledGridWidth}x${this.scaledGridHeight}`);
+        D_(DB.DB_INIT, '[Database] EGFMap initialized:', this._EGFMap);
+        D_(DB.DB_INIT, '[Database] TerrainMap initialized:', this.TerrainMap);
+        D_(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
+        D_(DB.DB_INIT, '[Database] Gravity Vector Array initialized:', this.GravityVectorArray);
+        D_(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
+    },
+
     addAUTInstance(typeName, posX, posY) {
         const type = this.AUTTypes[typeName];
         if (!type) {
@@ -124,5 +140,91 @@ export const Database = {
                 D_(DB.DB_INIT, `[Database] Precomputed scaled size for AUT type "${name}": ${type.graphics.scaledSize}`);
             }
         });
-    }
+    },
+
+    addChangeListener(listener) {
+        if (typeof listener === 'function') {
+            this.listeners.push(listener);
+        }
+    },
+
+    notifyChange() {
+        this.listeners.forEach(listener => listener());
+    },
+
+    getEGFValue(x, y) {
+        if (y < 0 || y >= this.gridConfig.gridHeight || x < 0 || x >= this.gridConfig.gridWidth) {
+            throw new Error(`[Database] Invalid EGF access at (${x}, ${y})`);
+        }
+        return this._EGFMap[y][x];
+    },
+
+    setEGFValue(x, y, newValue) {
+        if (y < 0 || y >= this.gridConfig.gridHeight || x < 0 || x >= this.gridConfig.gridWidth) {
+            throw new Error(`[Database] Invalid EGF update at (${x}, ${y})`);
+        }
+
+        this._EGFMap[y][x] = newValue;
+        D_(DB.MSE, `[Database] Updated EGF at (${x}, ${y}) to ${newValue}`);
+
+        // Dynamically recalculate the affected gravity vectors
+        this.updateGravityVectorsAround(x, y);
+
+        // Notify listeners of the change
+        this.notifyChange();
+    },
+
+    updateGravityVectorsAround(x, y) {
+        const { gridWidth, gridHeight, influenceRadius } = this.gridConfig;
+
+        for (let offsetY = -influenceRadius; offsetY <= influenceRadius; offsetY++) {
+            for (let offsetX = -influenceRadius; offsetX <= influenceRadius; offsetX++) {
+                const neighborX = x + offsetX;
+                const neighborY = y + offsetY;
+
+                if (neighborX < 0 || neighborX >= gridWidth || neighborY < 0 || neighborY >= gridHeight) {
+                    continue;
+                }
+
+                const distanceSquared = offsetX ** 2 + offsetY ** 2;
+                if (distanceSquared > influenceRadius ** 2) {
+                    continue;
+                }
+
+                this.GravityVectorArray[neighborY][neighborX] = calculateGravityVector(
+                    neighborX,
+                    neighborY,
+                    influenceRadius,
+                    this.gridConfig,
+                    this._EGFMap
+                );
+            }
+        }
+
+        D_(DB.MSE, `[Database] Updated Gravity Vectors around (${x}, ${y})`);
+    },
+
+    recalculateGravityVectors() {
+        const { gridWidth, gridHeight } = this.gridConfig;
+
+        for (let y = 0; y < gridHeight; y++) {
+            for (let x = 0; x < gridWidth; x++) {
+                const egfValue = this._EGFMap[y][x];
+
+                // Example logic: Calculate the vector based on the EGF value
+                const dx = egfValue - (this._EGFMap[y][x - 1] || egfValue); // Difference with left neighbor
+                const dy = egfValue - (this._EGFMap[y - 1]?.[x] || egfValue); // Difference with top neighbor
+                const magnitude = Math.sqrt(dx ** 2 + dy ** 2);
+
+                // Normalize the vector and store it in the GravityVectorArray
+                this.GravityVectorArray[y][x] = {
+                    x: dx / magnitude || 0,
+                    y: dy / magnitude || 0,
+                    magnitude,
+                };
+            }
+        }
+
+        D_(DB.MSE, '[Database] Recalculated Gravity Vectors.');
+    },
 };
