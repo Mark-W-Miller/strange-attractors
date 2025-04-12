@@ -24,6 +24,10 @@ export async function initializeCanvas(initializerConfigUrl = '../data/initializ
     } catch (error) {
         D_(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
     }
+
+    Database.addChangeListener(() => {
+        redrawCanvas(); // Trigger a redraw whenever the Database changes
+    });
 }
 
 export function redrawCanvas() {

@@ -1,7 +1,7 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
 import { loadAUTTypes, buildTypeMap } from './autLoader.js';
-import { initializeGravityVectorArray } from './physics/gravity.js';
+import { initializeGravityVectorArray, calculateGravityVector } from './physics/gravity.js'; // Import added
 
 export const Database = {
     gridConfig: null,

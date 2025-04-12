@@ -38,6 +38,7 @@ export function handleEditEGF(e, buttonType) {
                     }
                 } catch (error) {
                     D_(DB.MSE, error.message);
+                    throw error;
                 }
             }
         }
