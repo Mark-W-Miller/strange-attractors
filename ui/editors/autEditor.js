@@ -20,7 +20,7 @@ export function handleEditAUT(e, buttonType) {
 
     const gridWidth = Database.gridConfig.gridWidth;
     const gridHeight = Database.gridConfig.gridHeight;
-    const positionScaleFactor = Database.gridConfig.positionScaleFactor || 1; // Default to 1 if not defined
+    const positionScaleFactor = Database.gridConfig.positionScaleFactor;
 
     // Translate mouse coordinates into the Arena Space system
     const posX = Math.floor(((e.clientX - rect.left) / rect.width) * gridWidth * positionScaleFactor);
@@ -36,27 +36,22 @@ export function handleEditAUT(e, buttonType) {
         }
     });
 
-    // Use the precomputed size directly
-    const scaledSize = largestAUTSize;
-
-    // Track temporary placements during the current drag operation
-    if (!window.tempAUTPlacements) {
-        window.tempAUTPlacements = [];
-    }
-
-    // Enforce a minimum spacing between AUTs in the current brush stroke
-    const MIN_DISTANCE = 10 * positionScaleFactor; // Minimum distance in Arena Space units
+    // Check for overlap based on the size of the AUT in Arena Space
     const doesOverlap = window.tempAUTPlacements.some(({ posX: existingPosX, posY: existingPosY, properties }) => {
+        const existingSize = properties.graphics.size; 
         const distance = Math.sqrt((existingPosX - posX) ** 2 + (existingPosY - posY) ** 2);
+
+        // Minimum distance is the larger of the two AUT sizes
+        const minDistance = Math.max(largestAUTSize, existingSize);
 
         // Debug logs for distance calculation
         D_(DB.UI_DEEP, `[AUTEditor] Overlap check:`);
-        D_(DB.UI_DEEP, `  Current AUT: posX=${posX}, posY=${posY}, scaledSize=${scaledSize}`);
-        D_(DB.UI_DEEP, `  Existing AUT: posX=${existingPosX}, posY=${existingPosY}, size=${properties?.graphics?.size || 0}`);
-        D_(DB.UI_DEEP, `  Calculated distance=${distance.toFixed(2)}, MIN_DISTANCE=${MIN_DISTANCE}`);
-        D_(DB.UI_DEEP, `  Overlap result: ${distance <= MIN_DISTANCE}`);
+        D_(DB.UI_DEEP, `  Current AUT: posX=${posX}, posY=${posY}, size=${largestAUTSize}`);
+        D_(DB.UI_DEEP, `  Existing AUT: posX=${existingPosX}, posY=${existingPosY}, size=${existingSize}`);
+        D_(DB.UI_DEEP, `  Calculated distance=${distance.toFixed(2)}, minDistance=${minDistance}`);
+        D_(DB.UI_DEEP, `  Overlap result: ${distance <= minDistance}`);
 
-        return distance <= MIN_DISTANCE; // Check if the distance is less than or equal to the minimum distance
+        return distance <= minDistance; // Check if the distance is less than or equal to the minimum distance
     });
 
     if (doesOverlap) {

@@ -25,6 +25,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
     gameCanvas.addEventListener('mousedown', (e) => {
         e.preventDefault();
         isMouseDown = true;
+        window.tempAUTPlacements = [];
         handleEditAt(e, e.button);
     });
 
