@@ -50,5 +50,29 @@
             "color": "purple",
             "size": 20
         }
+    },
+    {
+        "name": "Little Blue Male",
+        "type": "male.aut",
+        "physics": {
+            "mass": 5
+        },
+        "graphics": {
+            "shape": "triangle",
+            "color": "blue",
+            "size": 10
+        }
+    },
+    {
+        "name": "Big Red Female",
+        "type": "female.aut",
+        "physics": {
+            "mass": 10
+        },
+        "graphics": {
+            "shape": "circle",
+            "color": "red",
+            "size": 20
+        }
     }
 ]
