@@ -4,6 +4,8 @@ import { loadAUTTypes, buildTypeMap } from './autLoader.js';
 
 export const Database = {
     gridConfig: null,
+    scaledGridWidth: null,
+    scaledGridHeight: null,
     EGFMap: [],
     TerrainMap: [],
     terrainTypes: ['flat', 'wall', 'rough', 'water'],
@@ -18,6 +20,11 @@ export const Database = {
             const gridResponse = await fetch(gridConfigUrl);
             this.gridConfig = await gridResponse.json();
             D_(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
+
+            // Precompute scaled grid dimensions
+            this.scaledGridWidth = this.gridConfig.gridWidth * this.gridConfig.positionScaleFactor;
+            this.scaledGridHeight = this.gridConfig.gridHeight * this.gridConfig.positionScaleFactor;
+            D_(DB.DB_INIT, `[Database] Scaled grid dimensions: ${this.scaledGridWidth}x${this.scaledGridHeight}`);
 
             // Load initializer configuration
             const initializerResponse = await fetch(initializerConfigUrl);
@@ -36,6 +43,10 @@ export const Database = {
             // Load and resolve AUT types
             const allTypes = await loadAUTTypes('../data/auts');
             this.AUTTypes = buildTypeMap(allTypes);
+
+            // Precompute scaled AUT sizes
+            this.precomputeAUTSizes();
+
             D_(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
 
             // Debug: List all resolved types
@@ -86,8 +97,7 @@ export const Database = {
     },
 
     // Add an AUT instance to the database
-    // Add an AUT instance to the database
-    addAUTInstance(typeName, pixelX, pixelY) {
+    addAUTInstance(typeName, posX, posY) {
         const type = this.AUTTypes[typeName];
         if (!type) {
             throw new Error(`[Database] Unknown AUT type: ${typeName}`);
@@ -96,12 +106,23 @@ export const Database = {
         const autInstance = {
             id: `${typeName}-${Date.now()}`, // Unique ID
             type: typeName,
-            x: pixelX, // Store pixel X coordinate
-            y: pixelY, // Store pixel Y coordinate
+            posX, // Store grid X coordinate
+            posY, // Store grid Y coordinate
             properties: { ...type } // Copy properties from the type
         };
 
         this.AUTInstances.push(autInstance);
-        D_(DB.DB_INIT, `[Database] Added AUT instance at pixel coordinates (${pixelX}, ${pixelY}):`, autInstance);
+        D_(DB.UI_DEEP, `[Database] Added AUT instance at grid coordinates (${posX}, ${posY}):`, autInstance);
+    },
+
+    precomputeAUTSizes() {
+        const scaleFactor = this.gridConfig.positionScaleFactor || 1;
+
+        Object.entries(this.AUTTypes).forEach(([name, type]) => {
+            if (type.graphics && type.graphics.size) {
+                type.graphics.scaledSize = type.graphics.size * scaleFactor;
+                D_(DB.DB_INIT, `[Database] Precomputed scaled size for AUT type "${name}": ${type.graphics.scaledSize}`);
+            }
+        });
     }
 };

@@ -204,6 +204,21 @@ function populateAUTTypes() {
     D_(DB.DB_INIT, '[ControlBar] AUT types dropdown populated with valid types.', validAUTTypes);
 }
 
+// Add this function to initialize the dynamic controls for the default mode
+function initializeDynamicControls() {
+    const defaultMode = document.getElementById('layerSelect').value;
+
+    // Show or hide controls based on the default mode
+    terrainControls.style.display = defaultMode === 'Terrain' ? 'block' : 'none';
+    document.getElementById('autControls').style.display = defaultMode === 'AUT' ? 'block' : 'none';
+
+    if (defaultMode === 'AUT') {
+        populateAUTTypes(); // Populate AUT types if AUT is the default mode
+    }
+
+    D_(DB.UI, `[ControlBar] Initialized dynamic controls for default mode: ${defaultMode}`);
+}
+
 // Load selected initializer
 initializerSelect.addEventListener('change', async (e) => {
     const initializerConfigUrl = e.target.value;
@@ -213,3 +228,4 @@ initializerSelect.addEventListener('change', async (e) => {
 
 // Populate initializers on load
 populateInitializers();
+initializeDynamicControls();

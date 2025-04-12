@@ -2,6 +2,7 @@
 import { D_, DB } from '../debug/DB.js';
 import { handleEditEGF } from './editors/egfEditor.js';
 import { handleEditTerrain } from './editors/terrainEditor.js';
+import { handleEditAUT } from './editors/autEditor.js'; // Import handleEditAUT
 import { updateMouseFeedback } from './controlBar.js';
 import { Database } from '../logic/simulator/database/database.js';
 
@@ -41,57 +42,18 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         }
     }
 
-    function handleEditAUT(e, buttonType) {
-        const autTypeSelect = document.getElementById('autTypeSelect');
-        if (!autTypeSelect) {
-            D_(DB.UI, '[EventHandlers] AUT type dropdown not found.');
-            return;
-        }
 
-        const selectedTypes = Array.from(autTypeSelect.selectedOptions).map(option => option.value);
-        if (selectedTypes.length === 0) {
-            D_(DB.UI, '[EventHandlers] No AUT types selected.');
-            return;
-        }
-
-        const canvasAUT = document.getElementById('canvas-AUT');
-        const rect = canvasAUT.getBoundingClientRect();
-
-        // Calculate pixel coordinates
-        const pixelX = e.clientX - rect.left;
-        const pixelY = e.clientY - rect.top;
-
-        // Find the largest AUT type among the selected types
-        let largestAUTSize = 0;
-        selectedTypes.forEach(typeName => {
-            const type = Database.AUTTypes[typeName];
-            if (type && type.size > largestAUTSize) {
-                largestAUTSize = type.size;
-            }
-        });
-
-        // Check if the new position overlaps with any existing AUTs
-        const doesOverlap = Database.AUTInstances.some(({ x, y }) => {
-            const distance = Math.sqrt((x - pixelX) ** 2 + (y - pixelY) ** 2);
-            return distance < largestAUTSize; // Overlap if distance is less than the largest AUT size
-        });
-
-        if (doesOverlap) {
-            D_(DB.UI, `[EventHandlers] Skipping placement at (${pixelX}, ${pixelY}) due to overlap.`);
-            return;
-        }
-
-        // Place the AUTs at the new position
-        selectedTypes.forEach(typeName => {
-            Database.addAUTInstance(typeName, pixelX, pixelY);
-        });
-
-        D_(DB.UI, `[EventHandlers] Placed AUTs at pixel coordinates (${pixelX}, ${pixelY}):`, selectedTypes);
-        redrawCanvas();
-    }
-
+    // Clear temporary placements on mouseup
     gameCanvas.addEventListener('mouseup', () => {
+        if (window.tempAUTPlacements) {
+            // Commit temporary placements to the database
+            Database.AUTInstances.push(...window.tempAUTPlacements);
+            window.tempAUTPlacements = [];
+        }
         isMouseDown = false;
+
+        // Trigger a canvas redraw to show the newly placed AUTs
+        redrawCanvas();
     });
 
     gameCanvas.addEventListener('wheel', (e) => {
@@ -148,6 +110,9 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
 
             if (buttonType !== null) {
                 handleEditAt(e, buttonType);
+
+                // Redraw the canvas to reflect changes
+                redrawCanvas();
             }
         }
     });

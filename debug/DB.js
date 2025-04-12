@@ -3,6 +3,7 @@
 export const DB = {
     // Debug class constants
     UI: 'UI',
+    UI_DEEP: 'UI_DEEP',
     INIT: 'INIT',
     MSE: 'MSE',
     RND: 'RND',
@@ -13,11 +14,12 @@ export const DB = {
     EDIT: 'EDIT',
     FEEDBACK: 'FEEDBACK',
     EVENTS: 'EVENTS',
-    DRAW: 'DRAW', // New debug level for drawing routines
+    DRAW: 'DRAW',
 
     // All available debug levels (static, non-editable)
     enabledDB: new Set([
         'UI',
+        'UI_DEEP',
         'INIT',
         'MSE',
         'RND',
