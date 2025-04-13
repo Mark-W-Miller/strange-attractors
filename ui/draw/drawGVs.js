@@ -27,7 +27,7 @@ export function drawGVs(ctx, width, height) {
                 // Draw a blue dot for zero-magnitude vectors
                 ctx.beginPath();
                 ctx.arc(startX, startY, 3, 0, 2 * Math.PI);
-                ctx.fillStyle = 'blue';
+                ctx.fillStyle = 'green';
                 ctx.fill();
                 continue;
             }
@@ -38,8 +38,14 @@ export function drawGVs(ctx, width, height) {
             const endX = startX + arrowLength * Math.cos(angle);
             const endY = startY + arrowLength * Math.sin(angle);
 
-            // Draw the vector as an orange arrow
-            drawArrow(ctx, startX, startY, endX, endY, 'orange');
+            // Calculate opacity based on magnitude (bounded between 0.25 and 1)
+            const minOpacity = 0.25; // Minimum opacity
+            const maxOpacity = 1;    // Maximum opacity
+            const maxMagnitude = 255; // Assuming the maximum magnitude is 255
+            const opacity = minOpacity + (vector.magnitude / maxMagnitude) * (maxOpacity - minOpacity);
+
+            // Draw the vector as an orange arrow with opacity
+            drawArrow(ctx, startX, startY, endX, endY, `rgba(0, 255, 0, ${opacity})`);
         }
     }
 }
@@ -54,7 +60,7 @@ function drawArrow(ctx, startX, startY, endX, endY, color) {
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
-        ctx.strokeStyle = color; // Use the provided color
+        ctx.strokeStyle = color; // Use the provided color with opacity
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -70,7 +76,7 @@ function drawArrow(ctx, startX, startY, endX, endY, color) {
             endY - arrowHeadLength * Math.sin(angle + Math.PI / 6)
         );
         ctx.closePath();
-        ctx.fillStyle = color; // Use the provided color
+        ctx.fillStyle = color; // Use the provided color with opacity
         ctx.fill();
     } catch (error) {
         D_(DB.ERROR, `[drawArrow] Error drawing arrow: ${error.message}`);

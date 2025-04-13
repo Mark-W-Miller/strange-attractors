@@ -33,32 +33,41 @@ export function updateMouseFeedback(e) {
     const cellWidthEGF = rectEGF.width / Database.gridConfig.gridWidth;
     const cellHeightEGF = rectEGF.height / Database.gridConfig.gridHeight;
 
-    let egfI = 'N/A';
-    let egfJ = 'N/A';
-    let egfValue = 'EGF layer hidden';
+    // Calculate grid indices
+    const egfI = Math.floor(adjustedYEGF / cellHeightEGF);
+    const egfJ = Math.floor(adjustedXEGF / cellWidthEGF);
 
-    if (canvasEGF.style.display !== 'none') {
-        egfI = Math.floor(adjustedYEGF / cellHeightEGF);
-        egfJ = Math.floor(adjustedXEGF / cellWidthEGF);
+    // Ensure indices are within bounds
+    if (egfI >= 0 && egfI < Database.gridConfig.gridHeight && egfJ >= 0 && egfJ < Database.gridConfig.gridWidth) {
+        // Retrieve EGF value
+        const egfValue = Database.getEGFValue(egfJ, egfI);
 
-        if (egfI >= 0 && egfI < Database.gridConfig.gridHeight && egfJ >= 0 && egfJ < Database.gridConfig.gridWidth) {
-            try {
-                egfValue = Database.getEGFValue(egfJ, egfI); // Use getter
-            } catch (error) {
-                egfValue = 'Out of bounds';
-            }
-        } else {
-            egfValue = 'Out of bounds';
-        }
+        // Retrieve Gravity Vector value
+        const gv = Database.GravityVectorArray[egfI][egfJ];
+        const gvValue = `x=${gv.x.toFixed(2)}, y=${gv.y.toFixed(2)}, magnitude=${gv.magnitude.toFixed(2)}`;
+
+        // Log feedback
+        D_(DB.FEEDBACK, '[MouseFeedback] Feedback:', { egfI, egfJ, egfValue, gvValue });
+
+        // Update mouse info display
+        mouseInfo.innerHTML = `
+            <div>Mouse X: ${adjustedXEGF.toFixed(2)}, Y: ${adjustedYEGF.toFixed(2)}</div>
+            <div>EGF IJ: (${egfI}, ${egfJ})</div>
+            <div>EGF Value: ${egfValue}</div>
+            <div>GV Value: ${gvValue}</div>
+        `;
+    } else {
+        // Log out-of-bounds feedback
+        D_(DB.FEEDBACK, '[MouseFeedback] Out of bounds:', { egfI, egfJ });
+
+        // Update mouse info display for out-of-bounds
+        mouseInfo.innerHTML = `
+            <div>Mouse X: ${adjustedXEGF.toFixed(2)}, Y: ${adjustedYEGF.toFixed(2)}</div>
+            <div>EGF IJ: (Out of bounds)</div>
+            <div>EGF Value: Out of bounds</div>
+            <div>GV Value: Out of bounds</div>
+        `;
     }
-
-    D_(DB.FEEDBACK, '[MouseFeedback] EGF feedback:', { egfI, egfJ, egfValue });
-
-    mouseInfo.innerHTML = `
-        <div>Mouse X: ${adjustedXEGF.toFixed(2)}, Y: ${adjustedYEGF.toFixed(2)}</div>
-        <div>EGF IJ: (${egfI}, ${egfJ})</div>
-        <div>EGF Value: ${egfValue}</div>
-    `;
 }
 
 // Add event listeners for simulator controls

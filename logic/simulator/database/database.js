@@ -194,7 +194,6 @@ export const Database = {
                 this.GravityVectorArray[neighborY][neighborX] = calculateGravityVector(
                     neighborX,
                     neighborY,
-                    influenceRadius,
                     this.gridConfig,
                     this._EGFMap
                 );
