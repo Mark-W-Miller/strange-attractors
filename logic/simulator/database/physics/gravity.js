@@ -36,8 +36,10 @@ export function calculateGravityVector(targetX, targetY, radius, gridConfig, EGF
             }
 
             const influence = EGFMap[neighborY][neighborX]; // Access EGFMap directly
-            vectorX += influence * offsetX;
-            vectorY += influence * offsetY;
+
+            // Reverse the direction of the influence
+            vectorX -= influence * offsetX;
+            vectorY -= influence * offsetY;
         }
     }
 

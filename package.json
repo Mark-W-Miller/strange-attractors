@@ -1,0 +1,29 @@
+{
+  "name": "strange.attractors",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mark-W-Miller/strange-attractors.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mark-W-Miller/strange-attractors/issues"
+  },
+  "homepage": "https://github.com/Mark-W-Miller/strange-attractors#readme",
+  "description": "",
+  "devDependencies": {
+    "madge": "^8.0.0",
+    "mocha": "^11.1.0"
+  }
+}

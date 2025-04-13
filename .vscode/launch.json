@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch App",
+        "program": "${workspaceFolder}/${input:programPath}",
+        "cwd": "${workspaceFolder}",
+        "runtimeArgs": ["--experimental-modules"],
+        "env": {
+          "NODE_ENV": "development"
+        }
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Run testGravity.js",
+        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+        "args": [
+          "--timeout",
+          "999999",
+          "--spec",
+          "test/gravity/testGravity.js"
+        ],
+        "cwd": "${workspaceFolder}",
+        "autoAttachChildProcesses": true,
+        "env": {
+          "NODE_ENV": "test"
+        },
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      }
+    ],
+    "inputs": [
+      {
+        "type": "pickString",
+        "id": "programPath",
+        "description": "Select the entry point for your application",
+        "options": [
+          "terst/gravity/gravity.js"
+        ]
+      }
+    ]
+  }
