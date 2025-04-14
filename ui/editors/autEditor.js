@@ -30,15 +30,15 @@ export function handleEditAUT(e, buttonType) {
     let largestAUTSize = 0;
     selectedTypes.forEach(typeName => {
         const type = Database.AUTTypes[typeName];
-        if (type && type.graphics && type.graphics.size > largestAUTSize) {
-            largestAUTSize = type.graphics.size; // Use size directly from the config
-            D_(DB.UI, `[AUTEditor] Selected AUT type: ${typeName}, size: ${type.graphics.size}, posX: ${posX}, posY: ${posY}`);
+        if (type && type.graphics && type.physics.coreSize > largestAUTSize) {
+            largestAUTSize = type.physics.coreSize; // Use size directly from the config
+            D_(DB.UI, `[AUTEditor] Selected AUT type: ${typeName}, coreSize: ${type.physics.coreSize}, posX: ${posX}, posY: ${posY}`);
         }
     });
 
     // Check for overlap based on the size of the AUT in Arena Space
     const doesOverlap = window.tempAUTPlacements.some(({ posX: existingPosX, posY: existingPosY, properties }) => {
-        const existingSize = properties.graphics.size; 
+        const existingSize = properties.physics.coreSize; 
         const distance = Math.sqrt((existingPosX - posX) ** 2 + (existingPosY - posY) ** 2);
 
         // Minimum distance is the larger of the two AUT sizes

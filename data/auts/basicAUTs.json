@@ -5,74 +5,39 @@
         "maxSpeed": 5,
         "physics": {
             "mass": 1,
+            "coreSize" : 4,
             "maxSpeed": 10
         },
         "graphics": {
             "shape": "circle",
-            "color": "blue",
-            "size": 10
-        }
-    },
-    {
-        "name": "Fast",
-        "type": "fast",
-        "physics": {
-            "maxSpeed": 30
-        }
-    },
-    {
-        "name": "Big",
-        "type": "big",
-        "physics": {
-            "mass": 5
-        }
-    },
-    {
-        "name": "Square",
-        "type": "square",
-        "graphics": {
-            "shape": "square",
-            "color": "red"
-        }
-    },
-    {
-        "name": "Triangle",
-        "type": "triangle",
-        "graphics": {
-            "shape": "triangle",
-            "color": "yellow"
-        }
-    },
-    {
-        "name": "Big Fast Square",
-        "type": "big.fast.square.aut",
-        "graphics": {
-            "color": "purple",
-            "size": 20
+            "color": "green",
+            "size": 4
         }
     },
     {
         "name": "Little Blue Male",
         "type": "male.aut",
         "physics": {
+            "coreSize" : 4,
             "mass": 5
         },
         "graphics": {
             "shape": "triangle",
             "color": "blue",
-            "size": 10
+            "size": 8
         }
     },
     {
         "name": "Big Red Female",
         "type": "female.aut",
         "physics": {
-            "mass": 10
+            "coreSize" : 16,
+            "mass": 8
         },
         "graphics": {
             "shape": "circle",
             "color": "red",
-            "size": 20
+            "size": 16
         }
     }
 ]
