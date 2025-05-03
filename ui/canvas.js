@@ -4,25 +4,34 @@ import { drawTerrain } from './draw/drawTerrain.js';
 import { drawAUTs } from './draw/drawAUTs.js';
 import { drawGVs } from './draw/drawGVs.js'; // Import for Gravity Vectors
 import { D_, DB } from '../../debug/DB.js';
+import { populateDebugCheckboxes } from './debugCheckboxes.js'; // Import the debug checkboxes logic
+import { createLayerCheckboxes } from './layersVisibleCheckboxes.js'; // Import the layersVisible logic
 
 export const layers = ['EGF', 'Terrain', 'AUT', 'GV']; // Centralized layers array
+export const layersVisible = new Set(layers); // Initially: all layers visible
 
 export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
-    D_(DB.DB_INIT, '[Canvas] Initializing canvas...');
-    await Database.initialize('../data/gridConfig.json', initializerConfigUrl);
-    D_(DB.DB_INIT, '[Canvas] Database initialized.');
+    D_(DB.CANVAS, '[Canvas] Initializing canvas...');
+
 
     initCanvas();
-    D_(DB.DB_INIT, '[Canvas] Canvas initialized.');
+    D_(DB.CANVAS, '[Canvas] Canvas initialized.');
+    // Populate debug checkboxes
+    populateDebugCheckboxes();
+    D_(DB.CANVAS, '[App] Debug checkboxes populated.');
+
+    // Populate visible layers checkboxes
+    createLayerCheckboxes();
+    D_(DB.CANVAS, '[App] Layers visible checkboxes populated.');
 
     window.addEventListener('resize', handleResize);
 
     try {
         const handlersModule = await import('./eventHandlers.js');
         handlersModule.setupEventHandlers({ redrawCanvas });
-        D_(DB.DB_INIT, '[Canvas] Event handlers set up.');
+        D_(DB.CANVAS, '[Canvas] Event handlers set up.');
     } catch (error) {
-        D_(DB.DB_INIT, '[Canvas] Failed to load or set up event handlers:', error);
+        D_(DB.CANVAS, '[Canvas] Failed to load or set up event handlers:', error);
     }
 
     Database.addChangeListener(() => {
@@ -52,7 +61,7 @@ function drawLayer(layer) {
                 drawTerrain(ctx, canvas.width, canvas.height);
                 break;
             case 'GV': // Gravity Vectors layer
-                drawGVs(ctx, canvas.width, canvas.height); 
+                drawGVs(ctx, canvas.width, canvas.height);
                 break;
             case 'EGF':
                 drawEGF(ctx, canvas.width, canvas.height);

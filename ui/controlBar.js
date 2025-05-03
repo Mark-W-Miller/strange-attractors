@@ -1,7 +1,6 @@
 import { Database } from '../../logic/simulator/database/database.js';
 import { D_, DB } from '../../debug/DB.js';
 import { Simulator } from '../../logic/simulator/engine/simulator.js';
-import { initializeCanvas } from './canvas.js';
 
 // Simulator control buttons
 const startSimulatorBtn = document.getElementById('startSimulatorBtn');
@@ -13,9 +12,6 @@ const terrainControls = document.getElementById('terrainControls');
 const mouseFeedback = document.getElementById('mouseFeedback');
 const mouseInfo = document.getElementById('mouseInfo');
 const initializerSelect = document.getElementById('initializerSelect');
-
-// Canvas elements
-const canvasContainer = document.getElementById('canvas-container');
 
 // Update mouse feedback dynamically
 export function updateMouseFeedback(e) {
@@ -98,43 +94,6 @@ layerSelect.addEventListener('change', (e) => {
     D_(DB.UI, `[ControlBar] Switched mode to ${mode}`);
 });
 
-// Populate initializer dropdown
-async function populateInitializers() {
-    try {
-        D_(DB.DB_INIT, '[ControlBar] Fetching initializer files...');
-        const response = await fetch('../data/initializers/initializers.json'); // Fetch the JSON file containing the list of initializers
-        if (!response.ok) {
-            throw new Error(`[ControlBar] Failed to fetch initializers: ${response.statusText}`);
-        }
-
-        const files = await response.json(); // Parse the JSON array
-        D_(DB.UI, '[ControlBar] Initializer files fetched:', files);
-
-        initializerSelect.innerHTML = ''; // Clear existing options
-
-        for (const file of files) {
-            try {
-                const fileResponse = await fetch(`../data/initializers/${file}`);
-                if (!fileResponse.ok) {
-                    throw new Error(`[ControlBar] Failed to fetch initializer file: ${file}`);
-                }
-
-                const initializerConfig = await fileResponse.json();
-                const option = document.createElement('option');
-                option.value = `../data/initializers/${file}`;
-                option.textContent = initializerConfig.name || file.replace('.json', ''); // Use the `name` field or fallback to the filename
-                initializerSelect.appendChild(option);
-                D_(DB.DB_INIT, `[ControlBar] Added initializer option: ${initializerConfig.name || file}`);
-            } catch (error) {
-                D_(DB.DB_INIT, `[ControlBar] Error processing initializer file: ${file}`, error);
-            }
-        }
-
-        D_(DB.DB_INIT, '[ControlBar] Initializer dropdown populated.');
-    } catch (error) {
-        D_(DB.DB_INIT, '[ControlBar] Failed to populate initializer dropdown:', error);
-    }
-}
 
 // Populate AUT types dropdown
 function populateAUTTypes() {
@@ -178,13 +137,5 @@ function initializeDynamicControls() {
     D_(DB.UI, `[ControlBar] Initialized dynamic controls for default mode: ${defaultMode}`);
 }
 
-// Load selected initializer
-initializerSelect.addEventListener('change', async (e) => {
-    const initializerConfigUrl = e.target.value;
-    await initializeCanvas(initializerConfigUrl);
-    D_(DB.UI, `[ControlBar] Loaded initializer: ${initializerConfigUrl}`);
-});
-
 // Populate initializers on load
-populateInitializers();
 initializeDynamicControls();

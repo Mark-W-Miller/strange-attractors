@@ -1,1 +1,0 @@
-// Explicit VEC operations & calculations

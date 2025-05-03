@@ -1,5 +1,7 @@
 // ui/debugCheckboxes.js
 import { D_, DB } from '../debug/DB.js';
+import { saveSimulationDebugInfo } from '../logic/simulator/storage.js'; // Import the save function
+import { Simulation } from '../data/initializers/default.js'; // Import the Simulation object
 
 export function populateDebugCheckboxes() {
     const debugCheckboxes = document.getElementById('debugCheckboxes');
@@ -28,6 +30,10 @@ export function populateDebugCheckboxes() {
             } else {
                 DB.disable(debugClass);
             }
+
+            // Save debug info after a checkbox is toggled
+            saveSimulationDebugInfo(Simulation);
+            D_(DB.INIT, `[DebugCheckboxes] Debug info saved after toggling ${debugClass}.`);
         });
 
         label.appendChild(checkbox);

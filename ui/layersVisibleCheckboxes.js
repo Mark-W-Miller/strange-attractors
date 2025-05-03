@@ -1,7 +1,6 @@
 import { D_, DB } from '../debug/DB.js';
-import { redrawCanvas, layers } from './canvas.js'; // Import layers from canvas.js
+import { redrawCanvas, layers, layersVisible } from './canvas.js'; // Import layers from canvas.js
 
-const layersVisible = new Set(layers); // Initially: all layers visible
 const container = document.getElementById('layersVisibleCheckboxes');
 
 export function createLayerCheckboxes() {

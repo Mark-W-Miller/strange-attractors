@@ -1,35 +1,16 @@
 import { D_, DB } from '../../../debug/DB.js';
 
-export async function loadAUTTypes(directory) {
+export async function loadAUTTypes(Simulation) {
     const allTypes = [];
 
     try {
-        // Fetch the manifest file
-        const response = await fetch(`${directory}/manifest.json`);
-        if (!response.ok) {
-            throw new Error(`[AUT Loader] Failed to fetch manifest file from ${directory}: ${response.statusText}`);
+        // Process each AUT file listed in the manifest
+        try {
+            allTypes.push(...Simulation.autTypes);
+            D_(DB.DB_INIT, `[AUT Loader] Loaded AUTs:`, allTypes);
+        } catch (error) {
+            console.error(`[AUT Loader] Error processing AUT file ${autPath}:`, error);
         }
-
-        const files = await response.json(); // Parse the JSON array of filenames
-        if (!Array.isArray(files)) {
-            throw new Error(`[AUT Loader] Expected a JSON array of filenames, but received: ${files}`);
-        }
-
-        // Fetch and process each file listed in the manifest
-        for (const file of files) {
-            try {
-                const fileResponse = await fetch(`${directory}/${file}`);
-                if (!fileResponse.ok) {
-                    throw new Error(`[AUT Loader] Failed to fetch AUT file: ${file}`);
-                }
-
-                const types = await fileResponse.json(); // Parse the JSON content
-                allTypes.push(...types);
-            } catch (error) {
-                console.error(`[AUT Loader] Error processing AUT file ${file}:`, error);
-            }
-        }
-
         D_(DB.DB_INIT, '[AUT Loader] Raw AUT types loaded:', allTypes);
     } catch (error) {
         console.error(`[AUT Loader] Failed to load AUT types:`, error);

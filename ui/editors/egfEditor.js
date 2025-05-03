@@ -1,6 +1,5 @@
 import { D_, DB } from '../../debug/DB.js';
 import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
-import { redrawCanvas } from '../canvas.js';
 import { Database } from '../../logic/simulator/database/database.js';
 
 export function handleEditEGF(e, buttonType) {

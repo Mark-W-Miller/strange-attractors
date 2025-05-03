@@ -1,14 +1,9 @@
 import { D_, DB } from '../../debug/DB.js';
-import { TerrainGrid } from '../../logic/grid.js';
 import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
 import { redrawCanvas } from '../canvas.js';
 import { Database } from '../../logic/simulator/database/database.js';
 
-let mouseIsDown = false, mouseButton, lastCellKey, massEditRadius = 0;
-let mousePos = null, terrainGrid, terrainTypeSelect, brushShapeSelect;
-
 export function initTerrainEditor(config) {
-    terrainGrid = new TerrainGrid(config.gridWidth, config.gridHeight);
     terrainTypeSelect = document.getElementById('terrainType');
     brushShapeSelect = document.getElementById('brushShape');
 }

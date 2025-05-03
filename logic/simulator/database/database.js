@@ -1,51 +1,46 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
 import { loadAUTTypes, buildTypeMap } from './autLoader.js';
-import { initializeGravityVectorArray, calculateGravityVector } from './physics/gravity.js'; // Import added
+import { initializeGravityVectorArray, calculateGravityVector } from './physics/gravity.js';
 
 export const Database = {
     gridConfig: null,
-    scaledGridWidth: null,
-    scaledGridHeight: null,
-    _EGFMap: [], // Make EGFMap private
-    GravityVectorArray: [], // Shadow array for gravity vectors
+    terrainTypes: {},
+    AUTTypes: {},
+    listeners: [],
+    AUTInstances: [],
+    Rules: null,
+    _EGFMap: [],
+    GravityVectorArray: [],
     TerrainMap: [],
-    terrainTypes: ['flat', 'wall', 'rough', 'water'],
-    terrainImages: {},
-    AUTTypes: {}, // Store resolved AUT types here
-    AUTInstances: [], // Store AUT instances here
-    listeners: [], // List of listeners for data changes
+    terrainImages: {}, // Initialize terrainImages as an empty object
 
-    async initialize(gridConfigUrl, initializerConfigUrl) {
-        D_(DB.DB_INIT, '[Database] Starting initialization...');
+    async initialize(Simulation) {
         try {
+            D_(DB.DB_INIT, '[Database] Starting initialization...');
+
             // Load grid configuration
-            const gridResponse = await fetch(gridConfigUrl);
-            this.gridConfig = await gridResponse.json();
-            D_(DB.DB_INIT, '[Database] gridConfig loaded:', this.gridConfig);
+            this.gridConfig = Simulation.gridConfig;
+            D_(DB.DB_INIT, '[Database] Grid configuration loaded:', this.gridConfig);
 
-            // Precompute scaled grid dimensions
-            this.scaledGridWidth = this.gridConfig.gridWidth * this.gridConfig.positionScaleFactor;
-            this.scaledGridHeight = this.gridConfig.gridHeight * this.gridConfig.positionScaleFactor;
-            D_(DB.DB_INIT, `[Database] Scaled grid dimensions: ${this.scaledGridWidth}x${this.scaledGridHeight}`);
+            // Initialize EGFMap
+            this._EGFMap = initializeEGFMap(
+                this.gridConfig.egfInitializer,
+                this.gridConfig.gridWidth,
+                this.gridConfig.gridHeight
+            );
+            D_(DB.DB_INIT, '[Database] EGFMap initialized.');
 
-            // Load initializer configuration
-            const initializerResponse = await fetch(initializerConfigUrl);
-            const initializerConfig = await initializerResponse.json();
-            D_(DB.DB_INIT, '[Database] Initializer config loaded:', initializerConfig);
-
-            // Initialize EGFMap and TerrainMap
-            this._EGFMap = initializeEGFMap(initializerConfig.egfInitializer, this.gridConfig.gridWidth, this.gridConfig.gridHeight);
-            this.verifyEGFMap(); // Validate the EGFMap
+            // Initialize TerrainMap
             this.TerrainMap = initializeTerrainMap(
-                initializerConfig.terrainInitializer,
+                this.gridConfig.terrainInitializer,
                 this.gridConfig.gridWidth,
                 this.gridConfig.gridHeight,
                 this.gridConfig.terrainScaleFactor
             );
 
             // Load and resolve AUT types
-            const allTypes = await loadAUTTypes('../data/auts');
+            const allTypes = await loadAUTTypes(Simulation);
             this.AUTTypes = buildTypeMap(allTypes);
 
             // Precompute scaled AUT sizes
@@ -59,7 +54,7 @@ export const Database = {
             });
 
             // Load terrain images
-            await this.loadTerrainImages();
+            await this.loadTerrainImages(Simulation.terrainTypes);
 
             // Initialize Gravity Vector Array
             this.GravityVectorArray = initializeGravityVectorArray(this.gridConfig, this._EGFMap);
@@ -73,16 +68,23 @@ export const Database = {
         }
     },
 
-    async loadTerrainImages() {
-        const terrainTypes = this.terrainTypes;
-        for (const type of terrainTypes) {
+    async loadTerrainImages(terrainTypes) {
+        if (!terrainTypes || !Array.isArray(terrainTypes)) {
+            throw new Error('[Database] terrainTypes is not defined or not an array.');
+        }
+
+        for (const terrain of terrainTypes) {
+            if (!terrain.type || !terrain.img) {
+                throw new Error(`[Database] Missing 'type' or 'img' property in terrain type: ${JSON.stringify(terrain)}`);
+            }
+
             const img = new Image();
-            img.src = `../images/terrain/${type}.png`; // Ensure these paths are correct
+            img.src = terrain.img; // Use the 'img' property for the image path
             await new Promise((resolve, reject) => {
                 img.onload = () => resolve();
-                img.onerror = () => reject(new Error(`[Database] Failed to load terrain image for type: ${type}`));
+                img.onerror = () => reject(new Error(`[Database] Failed to load terrain image for type: ${terrain.type}`));
             });
-            this.terrainImages[type] = img;
+            this.terrainImages[terrain.type] = img; // Store the loaded image using terrain.type as the key
         }
         D_(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
     },
