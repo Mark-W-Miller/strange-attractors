@@ -94,7 +94,6 @@ layerSelect.addEventListener('change', (e) => {
     D_(DB.UI, `[ControlBar] Switched mode to ${mode}`);
 });
 
-
 // Populate AUT types dropdown
 function populateAUTTypes() {
     const autTypeSelect = document.getElementById('autTypeSelect');
@@ -112,10 +111,16 @@ function populateAUTTypes() {
         return isValid;
     });
 
-    validAUTTypes.forEach(([name]) => {
+    validAUTTypes.forEach(([name], index) => {
         const option = document.createElement('option');
         option.value = name;
         option.textContent = name;
+
+        // Set the first option as selected by default
+        if (index === 0) {
+            option.selected = true;
+        }
+
         autTypeSelect.appendChild(option);
     });
 
