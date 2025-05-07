@@ -24,16 +24,19 @@ export function drawGVs(ctx, width, height) {
             const startY = y * cellHeight + cellHeight / 2;
 
             if (vector.magnitude === 0) {
-                // Draw a blue dot for zero-magnitude vectors
+                // Draw a red dot for zero-magnitude vectors
                 ctx.beginPath();
                 ctx.arc(startX, startY, 3, 0, 2 * Math.PI);
-                ctx.fillStyle = 'green';
+                ctx.fillStyle = 'red';
                 ctx.fill();
                 continue;
             }
 
             const angle = Math.atan2(vector.y, vector.x);
-            const arrowLength = Math.min(cellWidth, cellHeight) / 2 - 5;
+
+            // Calculate the maximum arrow length based on the circle that fits in the rectangle
+            const maxRadius = Math.min(cellWidth, cellHeight) / 2;
+            const arrowLength = maxRadius * 0.9; // Slightly reduce to ensure it fits comfortably
 
             const endX = startX + arrowLength * Math.cos(angle);
             const endY = startY + arrowLength * Math.sin(angle);
@@ -44,8 +47,8 @@ export function drawGVs(ctx, width, height) {
             const maxMagnitude = 255; // Assuming the maximum magnitude is 255
             const opacity = minOpacity + (vector.magnitude / maxMagnitude) * (maxOpacity - minOpacity);
 
-            // Draw the vector as an orange arrow with opacity
-            drawArrow(ctx, startX, startY, endX, endY, `rgba(0, 255, 0, ${opacity})`);
+            // Draw the vector as a red arrow with opacity
+            drawArrow(ctx, startX, startY, endX, endY, `rgba(255, 0, 0, ${opacity})`);
         }
     }
 }
