@@ -20,6 +20,10 @@ export function initializeEGFMap(config, gridWidth, gridHeight) {
             EGFMap = initializePeaksValleysEGFMap(config, gridWidth, gridHeight);
             break;
 
+        case 'depression': // New case for depression
+            EGFMap = initializeDepressionEGFMap(config, gridWidth, gridHeight);
+            break;
+
         default:
             throw new Error(`[Initializer] Unsupported EGFMap type: ${config.type}`);
     }
@@ -108,6 +112,42 @@ function initializePeaksValleysEGFMap(config, gridWidth, gridHeight) {
     });
 
     D_(DB.DB_INIT, '[Initializer] EGFMap initialized with peaks and valleys.');
+    return EGFMap;
+}
+
+// Function for 'depression' type
+function initializeDepressionEGFMap(config, gridWidth, gridHeight) {
+    const { value } = config; // `value` is the lowest point at the center
+    const edgeValue = 128 + (128 - value); // Mirror value above 128 for the edges
+
+    // Initialize the map with 0s
+    const EGFMap = Array.from({ length: gridHeight }, () =>
+        Array.from({ length: gridWidth }, () => 0)
+    );
+
+    D_(DB.DB_INIT, `[Initializer] Starting Depression initialization with value: ${value}`);
+    D_(DB.DB_INIT, `[Initializer] Grid dimensions: ${gridWidth}x${gridHeight}`);
+
+    // Calculate the center of the grid
+    const centerX = Math.floor(gridWidth / 2);
+    const centerY = Math.floor(gridHeight / 2);
+
+    // Apply depression
+    for (let i = 0; i < gridHeight; i++) {
+        for (let j = 0; j < gridWidth; j++) {
+            // Calculate the distance from the center
+            const dx = Math.abs(j - centerX);
+            const dy = Math.abs(i - centerY);
+            const maxDistance = Math.max(centerX, centerY);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Linearly interpolate between `value` (center) and `edgeValue` (edges)
+            const depressionValue = value + ((edgeValue - value) * (distance / maxDistance));
+            EGFMap[i][j] = Math.round(depressionValue);
+        }
+    }
+
+    D_(DB.DB_INIT, '[Initializer] EGFMap initialized with depression values.');
     return EGFMap;
 }
 

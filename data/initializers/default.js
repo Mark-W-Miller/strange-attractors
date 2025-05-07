@@ -14,8 +14,8 @@ export const Simulation = {
         influenceRadius: 4,
         defaultTerrainType: 'flat',
         egfInitializer: {
-            type: 'constant',
-            value: 128,
+            type: 'depression',
+            value: 45,
         },
         terrainInitializer: {
             type: 'constant',
