@@ -21,12 +21,13 @@ export const Simulation = {
             type: 'constant',
             terrainType: 'flat',
         },
+        FPS: 5, // Frames per second for the simulation
     },
 
     // AUT Initial Positions
     autPositions: [
         { name: 'Basic AUT 1', type: 'Basic', position: { x: 5, y: 5 }, velocity: { x: 0, y: 0 } },
-        // { name: 'Little Blue Male 1', type: 'Little Blue Male', position: { x: 10, y: 10 }, velocity: { x: 1, y: -1 } },
+        { name: 'Little Blue Male 1', type: 'Little Blue Male', position: { x: 10, y: 10 }, velocity: { x: 1, y: -1 } },
         // { name: 'Big Red Female 1', type: 'Big Red Female', position: { x: 15, y: 15 }, velocity: { x: -1, y: 1 } },
         // { name: 'Basic AUT 2', type: 'Basic', position: { x: 20, y: 20 }, velocity: { x: 0.5, y: -0.5 } },
     ],
@@ -91,16 +92,21 @@ export const Simulation = {
         {
             name: 'GravityVectorSensitivity',
             evaluate: (aut, database) => {
-                const { position, velocity, physics } = aut;
-                const { GravityVectorArray } = database;
+                const { position, velocity, physics } = aut; // Include physics for mass
+                const { GravityVectorArray, gridConfig } = database;
+                const { positionScaleFactor } = gridConfig;
 
-                const x = Math.floor(position.x);
-                const y = Math.floor(position.y);
+                // Convert arena coordinates to grid coordinates
+                const gridX = Math.floor(position.x / positionScaleFactor);
+                const gridY = Math.floor(position.y / positionScaleFactor);
 
-                if (y >= 0 && y < GravityVectorArray.length && x >= 0 && x < GravityVectorArray[0].length) {
-                    const gv = GravityVectorArray[y][x];
-                    velocity.x += gv.x * physics.coreSize * 0.01;
-                    velocity.y += gv.y * physics.coreSize * 0.01;
+                // Ensure the grid coordinates are within bounds
+                if (gridY >= 0 && gridY < GravityVectorArray.length && gridX >= 0 && gridX < GravityVectorArray[0].length) {
+                    const gravityVector = GravityVectorArray[gridY][gridX];
+
+                    // Apply the gravity vector to the AUT's velocity, scaled by mass
+                    velocity.x += gravityVector.x / physics.mass;
+                    velocity.y += gravityVector.y / physics.mass;
                 }
             },
         },

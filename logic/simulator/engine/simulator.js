@@ -1,7 +1,7 @@
 import { Database } from '../database/database.js';
 import { D_, DB } from '../../../debug/DB.js';
 import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas from canvas.js
-
+import { Simulation } from '../../../data/initializers/default.js';
 export const Simulator = {
     isRunning: false,
     isPaused: false,
@@ -78,18 +78,22 @@ export const Simulator = {
     },
 
     run() {
-        this.intervalId = setInterval(() => {
-            if (this.isPaused) return;
+        const { FPS } = Database.gridConfig; // Get FPS from the gridConfig
+        const interval = 1000 / FPS; // Calculate interval in milliseconds
 
-            // Simulation logic goes here
-            D_(DB.EVENTS, '[Simulator] Running simulation step...');
+        this.intervalId = setInterval(() => {
             this.updateSimulation();
             redrawCanvas(); // Call redrawCanvas directly
-        }, 1000 / 60); // 60 FPS
+        }, interval); // Use the calculated interval
     },
 
     updateSimulation() {
         const { AUTInstances, gridConfig } = Database;
+        const { positionScaleFactor, gridWidth, gridHeight } = gridConfig;
+
+        // Calculate arena dimensions
+        const arenaWidth = gridWidth * positionScaleFactor;
+        const arenaHeight = gridHeight * positionScaleFactor;
 
         // Update each AUT based on its specific rules
         AUTInstances.forEach(aut => {
@@ -100,13 +104,13 @@ export const Simulator = {
                 }
             });
 
-            // Update position
+            // Update position in arena coordinates
             aut.position.x += aut.velocity.x;
             aut.position.y += aut.velocity.y;
 
-            // Keep AUTs within bounds
-            aut.position.x = Math.max(0, Math.min(gridConfig.gridWidth - 1, aut.position.x));
-            aut.position.y = Math.max(0, Math.min(gridConfig.gridHeight - 1, aut.position.y));
+            // Keep AUTs within bounds in arena coordinates
+            aut.position.x = Math.max(0, Math.min(arenaWidth - 1, aut.position.x));
+            aut.position.y = Math.max(0, Math.min(arenaHeight - 1, aut.position.y));
         });
 
         // Notify listeners

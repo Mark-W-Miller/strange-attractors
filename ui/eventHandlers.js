@@ -1,4 +1,3 @@
-// ui/eventHandlers.js
 import { D_, DB } from '../debug/DB.js';
 import { handleEditEGF } from './editors/egfEditor.js';
 import { handleEditTerrain } from './editors/terrainEditor.js';
@@ -10,7 +9,7 @@ export let selectedBrushShape = 'circle';
 export let cursorSize = 20;
 export let isMouseDown = false;
 
-export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanvas }) {
+export function setupEventHandlers({ redrawCanvas, handleResize }) {
     const gameCanvas = document.getElementById('gameCanvas');
 
     const getCurrentEditMode = () => document.getElementById('layerSelect').value;
@@ -42,7 +41,6 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
             D_(DB.MSE, `Unsupported edit mode: ${editMode}`);
         }
     }
-
 
     // Clear temporary placements on mouseup
     gameCanvas.addEventListener('mouseup', () => {

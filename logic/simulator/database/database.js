@@ -39,6 +39,13 @@ export const Database = {
                 this.gridConfig.terrainScaleFactor
             );
 
+            // Assign terrainTypes to Database
+            this.terrainTypes = Simulation.terrainTypes;
+            D_(DB.DB_INIT, '[Database] Terrain types assigned:', this.terrainTypes);
+
+            // Load terrain images
+            await this.loadTerrainImages(this.terrainTypes);
+
             // Load and resolve AUT types
             const allTypes = await loadAUTTypes(Simulation);
             this.AUTTypes = buildTypeMap(allTypes);
@@ -48,33 +55,24 @@ export const Database = {
 
             D_(DB.DB_INIT, '[Database] AUT types loaded:', this.AUTTypes);
 
-            // Debug: List all resolved types
-            Object.entries(this.AUTTypes).forEach(([name, type]) => {
-                D_(DB.DB_INIT, `[Database] Resolved AUT Type: ${name}`, type);
-            });
-
-            // Load terrain images
-            await this.loadTerrainImages(Simulation.terrainTypes);
-
             // Initialize AUT instances
             this.AUTInstances = Simulation.autPositions.map(autPosition => {
-                // Find the corresponding AUT type by matching the type field
                 const autType = Simulation.autTypes.find(type => type.name === autPosition.type);
                 if (!autType) {
                     throw new Error(`[Database] Unknown AUT type: ${autPosition.type}`);
                 }
-            
-                // Create an AUT instance with the required properties
+
                 return {
-                    name: autPosition.name, // Unique name for the AUT
-                    position: autPosition.position || { x: 0, y: 0 }, // Use position key or default to (0, 0)
-                    velocity: autPosition.velocity || { x: 0, y: 0 }, // Default velocity
-                    rules: autType.rules || [], // Assign rules from autType
-                    physics: autType.physics, // Include physics properties
-                    graphics: autType.graphics, // Include graphics properties
+                    name: autPosition.name,
+                    position: autPosition.position || { x: 0, y: 0 },
+                    velocity: autPosition.velocity || { x: 0, y: 0 },
+                    rules: autType.rules || [],
+                    physics: autType.physics,
+                    graphics: autType.graphics,
                 };
             });
-                        // Initialize Gravity Vector Array
+
+            // Initialize Gravity Vector Array
             this.GravityVectorArray = initializeGravityVectorArray(this.gridConfig, this._EGFMap);
 
             // Log debugging information

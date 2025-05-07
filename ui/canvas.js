@@ -13,9 +13,6 @@ export const layersVisible = new Set(layers); // Initially: all layers visible
 export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
     D_(DB.CANVAS, '[Canvas] Initializing canvas...');
 
-
-    initCanvas();
-    D_(DB.CANVAS, '[Canvas] Canvas initialized.');
     // Populate debug checkboxes
     populateDebugCheckboxes();
     D_(DB.CANVAS, '[App] Debug checkboxes populated.');
@@ -24,11 +21,9 @@ export async function initializeCanvas(initializerConfigUrl = '../data/initializ
     createLayerCheckboxes();
     D_(DB.CANVAS, '[App] Layers visible checkboxes populated.');
 
-    window.addEventListener('resize', handleResize);
-
     try {
         const handlersModule = await import('./eventHandlers.js');
-        handlersModule.setupEventHandlers({ redrawCanvas });
+        handlersModule.setupEventHandlers({ redrawCanvas, handleResize });
         D_(DB.CANVAS, '[Canvas] Event handlers set up.');
     } catch (error) {
         D_(DB.CANVAS, '[Canvas] Failed to load or set up event handlers:', error);
@@ -37,6 +32,13 @@ export async function initializeCanvas(initializerConfigUrl = '../data/initializ
     Database.addChangeListener(() => {
         redrawCanvas(); // Trigger a redraw whenever the Database changes
     });
+
+    // Set up window resize event
+    window.addEventListener('resize', handleResize);
+
+    // Perform the initial resize after all controls are added
+    handleResize();
+    D_(DB.CANVAS, '[Canvas] Initial resize completed.');
 }
 
 export function redrawCanvas() {
@@ -75,9 +77,9 @@ function drawLayer(layer) {
     }
 }
 
-function handleResize() {
+export function handleResize() {
     const container = document.getElementById('gameCanvas');
-    const availableWidth = container.clientWidth;
+    const availableWidth = container.clientWidth; // Define availableWidth
     const availableHeight = container.clientHeight;
 
     const totalGridWidth = Database.gridConfig.gridWidth;
@@ -101,6 +103,7 @@ function handleResize() {
         }
     });
 
+    D_(DB.CANVAS, `[Canvas] Resized to ${canvasWidth}x${canvasHeight}`);
     redrawCanvas();
 }
 
