@@ -8,28 +8,27 @@ export function drawAUTs(ctx, width, height) {
     const cellWidth = width / arenaWidth; // Width of an Arena Space cell in pixels
     const cellHeight = height / arenaHeight; // Height of an Arena Space cell in pixels
 
-    D_(DB.DRAW, `[drawAUTs] Canvas dimensions: width=${width}, height=${height}`);
-    D_(DB.DRAW, `[drawAUTs] Arena dimensions: arenaWidth=${arenaWidth}, arenaHeight=${arenaHeight}`);
-    D_(DB.DRAW, `[drawAUTs] Cell dimensions: cellWidth=${cellWidth.toFixed(2)}, cellHeight=${cellHeight.toFixed(2)}`);
-
     // Combine permanent and temporary AUTs, then sort by size (largest first)
     const allAUTs = [...Database.AUTInstances, ...(window.tempAUTPlacements || [])];
-    allAUTs.sort((a, b) => b.properties.graphics.size - a.properties.graphics.size);
+    allAUTs.sort((a, b) => b.graphics.size - a.graphics.size);
 
     // Helper function to draw a single AUT
-    const drawAUT = ({ posX, posY, properties }) => {
-        const { graphics } = properties;
-
-        if (!graphics) {
-            D_(DB.DRAW, `[drawAUTs] Skipping AUT at (${posX}, ${posY}) due to missing graphics.`);
+    const drawAUT = ({ position, graphics }) => {
+        if (!position || !graphics) {
+            D_(DB.DRAW, `[drawAUTs] Skipping AUT due to missing position or graphics.`);
             return;
         }
 
-        const size = graphics.size * Math.min(cellWidth, cellHeight); // Scale size from Arena Space to Canvas Space
-        const screenX = posX * cellWidth; // Translate posX from Arena Space to Canvas Space
-        const screenY = posY * cellHeight; // Translate posY from Arena Space to Canvas Space
+        const { x, y } = position;
 
-        D_(DB.DRAW, `[drawAUTs] Drawing AUT at Arena (${posX}, ${posY}) -> Canvas (${screenX.toFixed(2)}, ${screenY.toFixed(2)}): size=${size.toFixed(2)}, color=${graphics.color}`);
+        // Debug: Log all details about the AUT being drawn
+        D_(DB.DRAW, `[drawAUTs] AUT Details:`, { x, y, graphics });
+
+        const size = graphics.size * Math.min(cellWidth, cellHeight); // Scale size from Arena Space to Canvas Space
+        const screenX = x * cellWidth; // Translate x from Arena Space to Canvas Space
+        const screenY = y * cellHeight; // Translate y from Arena Space to Canvas Space
+
+        D_(DB.DRAW, `[drawAUTs] Drawing AUT at Arena (${x}, ${y}) -> Canvas (${screenX.toFixed(2)}, ${screenY.toFixed(2)}): size=${size.toFixed(2)}, color=${graphics.color}`);
 
         ctx.fillStyle = graphics.color || 'black';
 
@@ -52,7 +51,7 @@ export function drawAUTs(ctx, width, height) {
             ctx.closePath();
             ctx.fill();
         } else {
-            D_(DB.DRAW, `[drawAUTs] Unknown shape for AUT at (${posX}, ${posY}):`, graphics.shape);
+            D_(DB.DRAW, `[drawAUTs] Unknown shape for AUT at (${x}, ${y}):`, graphics.shape);
         }
     };
 

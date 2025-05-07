@@ -13,6 +13,7 @@ export const DB = {
     CANVAS: 'CANVAS',
     EDIT: 'EDIT',
     FEEDBACK: 'FEEDBACK',
+    ERROR: 'ERROR',
     EVENTS: 'EVENTS',
     DRAW: 'DRAW',
 
@@ -103,6 +104,30 @@ export const DB = {
 
 // Main debug logging function
 export function D_(dbClass, ...args) {
+    // Always log errors regardless of debug levels
+    if (dbClass === 'ERROR') {
+        const stack = new Error().stack.split('\n');
+        const callerInfo = stack[2] || stack[1];
+        const matched = callerInfo.match(/\((.*?):(\d+):(\d+)\)/) || callerInfo.match(/at (.*?):(\d+):(\d+)/);
+
+        if (matched) {
+            const [_, filePath, lineNumber, colNumber] = matched;
+            const fileName = filePath.split('/').pop();
+
+            const link = `${filePath}:${lineNumber}:${colNumber}`;
+            console.error(
+                `%c[ERROR] %c${fileName}:${lineNumber}`,
+                'color: #FF0000; font-weight: bold;',
+                'color: #039be5; text-decoration: underline; cursor: pointer;',
+                ...args,
+                `\n${link}`
+            );
+        } else {
+            console.error(`[ERROR unknown]`, ...args);
+        }
+        return;
+    }
+
     // Check if the debug class is currently active
     if (DB.dbLevelsOn.has(dbClass)) {
         const stack = new Error().stack.split('\n');

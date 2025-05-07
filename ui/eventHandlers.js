@@ -18,7 +18,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
     const brushShapeSelect = document.getElementById('brushShape');
 
     brushShapeSelect.addEventListener('change', (e) => {
-        selectedBrushShape = e.target.value; 
+        selectedBrushShape = e.target.value;
         D_(DB.UI, `Brush shape explicitly changed to ${selectedBrushShape}`);
     });
 
@@ -47,8 +47,10 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
     // Clear temporary placements on mouseup
     gameCanvas.addEventListener('mouseup', () => {
         if (window.tempAUTPlacements) {
-            // Commit temporary placements to the database
-            Database.AUTInstances.push(...window.tempAUTPlacements);
+            window.tempAUTPlacements.forEach(({ type, position }) => {
+                const { x, y } = position; // Extract x and y from position
+                Database.addAUTInstance(type, x, y);
+            });
             window.tempAUTPlacements = [];
         }
         isMouseDown = false;
@@ -62,7 +64,7 @@ export function setupEventHandlers({ EGFMap, TerrainMap, gridConfig, redrawCanva
         cursorSize += Math.sign(e.deltaY) * 6;
         cursorSize = Math.max(1, Math.min(cursorSize, 500));
         D_(DB.MSE, `Cursor size changed to ${cursorSize}`);
-    
+
         // Immediately redraw cursor after size change
         const event = new MouseEvent('mousemove', {
             clientX: e.clientX,

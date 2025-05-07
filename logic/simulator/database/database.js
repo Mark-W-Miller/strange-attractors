@@ -56,7 +56,25 @@ export const Database = {
             // Load terrain images
             await this.loadTerrainImages(Simulation.terrainTypes);
 
-            // Initialize Gravity Vector Array
+            // Initialize AUT instances
+            this.AUTInstances = Simulation.autPositions.map(autPosition => {
+                // Find the corresponding AUT type by matching the type field
+                const autType = Simulation.autTypes.find(type => type.name === autPosition.type);
+                if (!autType) {
+                    throw new Error(`[Database] Unknown AUT type: ${autPosition.type}`);
+                }
+            
+                // Create an AUT instance with the required properties
+                return {
+                    name: autPosition.name, // Unique name for the AUT
+                    position: autPosition.position || { x: 0, y: 0 }, // Use position key or default to (0, 0)
+                    velocity: autPosition.velocity || { x: 0, y: 0 }, // Default velocity
+                    rules: autType.rules || [], // Assign rules from autType
+                    physics: autType.physics, // Include physics properties
+                    graphics: autType.graphics, // Include graphics properties
+                };
+            });
+                        // Initialize Gravity Vector Array
             this.GravityVectorArray = initializeGravityVectorArray(this.gridConfig, this._EGFMap);
 
             // Log debugging information
@@ -115,7 +133,7 @@ export const Database = {
         D_(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
     },
 
-    addAUTInstance(typeName, posX, posY) {
+    addAUTInstance(typeName, x, y) {
         const type = this.AUTTypes[typeName];
         if (!type) {
             throw new Error(`[Database] Unknown AUT type: ${typeName}`);
@@ -124,13 +142,15 @@ export const Database = {
         const autInstance = {
             id: `${typeName}-${Date.now()}`, // Unique ID
             type: typeName,
-            posX, // Store grid X coordinate
-            posY, // Store grid Y coordinate
-            properties: { ...type } // Copy properties from the type
+            position: { x, y }, // Store coordinates under position
+            velocity: { x: 0, y: 0 }, // Default velocity
+            rules: type.rules || [], // Assign rules from autType
+            physics: type.physics, // Include physics properties
+            graphics: type.graphics, // Include graphics properties
         };
 
         this.AUTInstances.push(autInstance);
-        D_(DB.UI_DEEP, `[Database] Added AUT instance at grid coordinates (${posX}, ${posY}):`, autInstance);
+        D_(DB.UI_DEEP, `[Database] Added AUT instance at position (${x}, ${y}):`, autInstance);
     },
 
     precomputeAUTSizes() {

@@ -89,17 +89,24 @@ export const Simulator = {
     },
 
     updateSimulation() {
-        const { AUTs, GridConfig } = Database;
+        const { AUTInstances, gridConfig } = Database;
 
-        // Update each AUT based on its rules
-        AUTs.forEach(aut => {
-            aut.rules.forEach(rule => rule.evaluate(aut, Database));
+        // Update each AUT based on its specific rules
+        AUTInstances.forEach(aut => {
+            aut.rules.forEach(ruleName => {
+                const rule = Simulation.rules.find(r => r.name === ruleName);
+                if (rule) {
+                    rule.evaluate(aut, Database);
+                }
+            });
+
+            // Update position
             aut.position.x += aut.velocity.x;
             aut.position.y += aut.velocity.y;
 
             // Keep AUTs within bounds
-            aut.position.x = Math.max(0, Math.min(GridConfig.gridWidth - 1, aut.position.x));
-            aut.position.y = Math.max(0, Math.min(GridConfig.gridHeight - 1, aut.position.y));
+            aut.position.x = Math.max(0, Math.min(gridConfig.gridWidth - 1, aut.position.x));
+            aut.position.y = Math.max(0, Math.min(gridConfig.gridHeight - 1, aut.position.y));
         });
 
         // Notify listeners

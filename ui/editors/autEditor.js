@@ -37,8 +37,8 @@ export function handleEditAUT(e, buttonType) {
     });
 
     // Check for overlap based on the size of the AUT in Arena Space
-    const doesOverlap = window.tempAUTPlacements.some(({ posX: existingPosX, posY: existingPosY, properties }) => {
-        const existingSize = properties.physics.coreSize; 
+    const doesOverlap = window.tempAUTPlacements.some(({ posX: existingPosX, posY: existingPosY, graphics }) => {
+        const existingSize = graphics.size;
         const distance = Math.sqrt((existingPosX - posX) ** 2 + (existingPosY - posY) ** 2);
 
         // Minimum distance is the larger of the two AUT sizes
@@ -62,19 +62,22 @@ export function handleEditAUT(e, buttonType) {
     // Place the AUTs at the new position
     selectedTypes.forEach(typeName => {
         const type = Database.AUTTypes[typeName];
+        if (!type) {
+            D_(DB.UI, `[AUTEditor] Unknown AUT type: ${typeName}`);
+            return;
+        }
+
         const newAUT = {
             id: `${typeName}-${Date.now()}`, // Unique ID
             type: typeName,
-            posX, // Store Arena Space X coordinate
-            posY, // Store Arena Space Y coordinate
-            properties: { ...type } // Copy properties from the type
+            position: { x: posX, y: posY }, // Store coordinates under position
+            velocity: { x: 0, y: 0 }, // Default velocity
+            rules: type.rules || [], // Assign rules from autType
+            physics: type.physics, // Include physics properties
+            graphics: type.graphics, // Include graphics properties
         };
 
-        // Add the AUT to the temporary placements
         window.tempAUTPlacements.push(newAUT);
-
-        // Trigger a redraw to display the temporary AUTs
-        redrawCanvas();
     });
 
     D_(DB.UI, `[AUTEditor] Placed AUTs at Arena Space coordinates (${posX}, ${posY}):`, selectedTypes);

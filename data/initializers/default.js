@@ -25,9 +25,10 @@ export const Simulation = {
 
     // AUT Initial Positions
     autPositions: [
-        { name: 'Basic', position: { x: 5, y: 5 }, velocity: { x: 0, y: 0 } },
-        { name: 'Little Blue Male', position: { x: 10, y: 10 }, velocity: { x: 1, y: -1 } },
-        { name: 'Big Red Female', position: { x: 15, y: 15 }, velocity: { x: -1, y: 1 } },
+        { name: 'Basic AUT 1', type: 'Basic', position: { x: 5, y: 5 }, velocity: { x: 0, y: 0 } },
+        { name: 'Little Blue Male 1', type: 'Little Blue Male', position: { x: 10, y: 10 }, velocity: { x: 1, y: -1 } },
+        { name: 'Big Red Female 1', type: 'Big Red Female', position: { x: 15, y: 15 }, velocity: { x: -1, y: 1 } },
+        { name: 'Basic AUT 2', type: 'Basic', position: { x: 20, y: 20 }, velocity: { x: 0.5, y: -0.5 } },
     ],
 
     // AUT Types
@@ -45,7 +46,7 @@ export const Simulation = {
                 color: 'green',
                 size: 4,
             },
-            rules: [],
+            rules: ['GravityVectorSensitivity'], // Only apply gravity
         },
         {
             name: 'Little Blue Male',
@@ -59,7 +60,7 @@ export const Simulation = {
                 color: 'blue',
                 size: 8,
             },
-            rules: [],
+            rules: ['GravityVectorSensitivity', 'TerrainSensitivity'], // Apply both rules
         },
         {
             name: 'Big Red Female',
@@ -73,7 +74,7 @@ export const Simulation = {
                 color: 'red',
                 size: 16,
             },
-            rules: [],
+            rules: ['TerrainSensitivity'], // Only apply terrain sensitivity
         },
     ],
 
