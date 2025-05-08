@@ -1,10 +1,10 @@
 export const Simulation = {
     // Grid Configuration
     gridConfig: {
-        gridWidth: 40,
-        gridHeight: 20,
+        gridWidth: 80,
+        gridHeight: 40,
         terrainScaleFactor: 1,
-        positionScaleFactor: 16,
+        positionScaleFactor: 32,
         terrainOpacity: 0.5,
         gridLineColors: {
             EGF: '#CCCCCC',
@@ -14,9 +14,8 @@ export const Simulation = {
         influenceRadius: 4,
         defaultTerrainType: 'flat',
         egfInitializer: {
-            type: 'gradient',
-            startValue: 20,
-            endValue: 220,
+            type: 'depression',
+            value: 20,
             // type: 'random',
             // minValue: 20,
             // maxValue: 220,
@@ -85,10 +84,11 @@ export const Simulation = {
 
     // Terrain Types
     terrainTypes: [
-        { type: 'flat', img: '/images/terrain/flat.png', velocityModifier: 1.0, bounce: false }, // No bounce
-        { type: 'rough', img: '/images/terrain/rough.png', velocityModifier: 0.8, bounce: false }, // No bounce
-        { type: 'wall', img: '/images/terrain/wall.png', velocityModifier: 0.0, bounce: true }, // Bounce off walls
-        { type: 'water', img: '/images/terrain/water.png', velocityModifier: 0.5, bounce: false }, // No bounce
+        { type: 'flat', img: '/images/terrain/flat.png', velocityModifier: 1.0, bounce: 'none' }, // No bounce
+        { type: 'rough', img: '/images/terrain/rough.png', velocityModifier: 0.8, bounce: 'none' }, // No bounce
+        { type: 'tower', img: '/images/terrain/tower.png', velocityModifier: 0.0, bounce: 'round' }, // Square bounce
+        { type: 'wall', img: '/images/terrain/wall.png', velocityModifier: 0.0, bounce: 'square' }, // Square bounce
+        { type: 'water', img: '/images/terrain/water.png', velocityModifier: 0.5, bounce: 'none' }, // Round bounce
     ],
 
     // Rules
@@ -132,39 +132,48 @@ export const Simulation = {
                     const terrain = terrainTypes.find(t => t.type === terrainType);
 
                     if (terrain) {
-                        if (terrain.bounce) {
-                            // Calculate the center of the terrain cell
+                        if (terrain.bounce === 'round') {
+                            // Handle round (circular) bounce
                             const centerX = x * cellSize + cellSize / 2;
                             const centerY = y * cellSize + cellSize / 2;
 
-                            // Calculate the distance from the AUT to the center of the cell
                             const dx = position.x - centerX;
                             const dy = position.y - centerY;
                             const distance = Math.sqrt(dx * dx + dy * dy);
 
-                            // Define the radius of the enlarged circular boundary
                             const radius = cellSize / Math.sqrt(2); // Larger radius to cover corners
 
-                            // Check if the AUT is outside the circular boundary
                             if (distance <= radius) {
-                                // Normalize the direction vector (dx, dy)
                                 const normalX = dx / distance;
                                 const normalY = dy / distance;
 
-                                // Reflect the velocity vector across the normal
                                 const dotProduct = velocity.x * normalX + velocity.y * normalY;
                                 velocity.x -= 2 * dotProduct * normalX;
                                 velocity.y -= 2 * dotProduct * normalY;
 
-                                // Adjust the position to ensure the AUT is inside the boundary
                                 const overlap = distance - radius;
                                 position.x -= overlap * normalX;
                                 position.y -= overlap * normalY;
                             }
-                        } else if (terrain.velocityModifier !== undefined) {
-                            // Apply the terrain's velocity modifier
-                            velocity.x *= terrain.velocityModifier;
-                            velocity.y *= terrain.velocityModifier;
+                        } else if (terrain.bounce === 'square') {
+                            // Handle square bounce
+                            const leftBoundary = x * cellSize;
+                            const rightBoundary = (x + 1) * cellSize;
+                            const topBoundary = y * cellSize;
+                            const bottomBoundary = (y + 1) * cellSize;
+
+                            if (position.x >= leftBoundary && position.x <= rightBoundary) {
+                                velocity.x = -velocity.x; // Reverse x velocity
+                            }
+                            if (position.y >= topBoundary && position.y <= bottomBoundary) {
+                                velocity.y = -velocity.y; // Reverse y velocity
+                            }
+                        } else if (terrain.bounce === 'none') {
+                            // No bounce, apply velocity modifier if defined
+                            if (terrain.velocityModifier !== undefined) {
+                                velocity.x *= terrain.velocityModifier;
+                                velocity.y *= terrain.velocityModifier;
+                            }
                         }
                     }
                 }
