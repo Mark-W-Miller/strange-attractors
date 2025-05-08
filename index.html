@@ -22,7 +22,7 @@
                 <select id="layerSelect" name="layerSelect">
                     <option value="EGF" selected>EGF</option>
                     <option value="Terrain">Terrain</option>
-                    <option value="AUT" >AUT</option> <!-- Set AUT as the default -->
+                    <option value="AUT">AUT</option> <!-- Set AUT as the default -->
                 </select>
             </label>
 
@@ -84,15 +84,7 @@
 
             <!-- FPS Control -->
             <label for="fps-control">FPS:</label>
-            <input
-                id="fps-control"
-                type="number"
-                min="1"
-                max="60"
-                step="1"
-                value=""
-                onchange="updateFPS(this.value)"
-            />
+            <input id="fps-control" type="number" min="1" max="60" step="1" value="10" />
         </div>
 
         <!-- Debug Section -->

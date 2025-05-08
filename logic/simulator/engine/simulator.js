@@ -117,6 +117,31 @@ export const Simulator = {
         this.notifyListeners();
     },
 
+    updateInterval(newFPS) {
+        if (!this.isRunning) {
+            D_(DB.EVENTS, '[Simulator] Simulator is not running. Interval update skipped.');
+            return;
+        }
+
+        // Update the FPS in the Database
+        Database.gridConfig.FPS = newFPS;
+
+        // Calculate the new interval
+        const interval = 1000 / newFPS;
+
+        // Clear the existing interval and set a new one
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+
+        this.intervalId = setInterval(() => {
+            this.updateSimulation();
+            redrawCanvas(); // Call redrawCanvas directly
+        }, interval);
+
+        D_(DB.EVENTS, `[Simulator] Interval updated to ${interval} ms (FPS: ${newFPS}).`);
+    },
+
     addListener(listener) {
         if (typeof listener !== 'function') {
             console.error('[Simulator] Listener must be a function.');

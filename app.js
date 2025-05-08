@@ -4,6 +4,7 @@ import { D_, DB } from './debug/DB.js';
 import { initializeSimulation } from './logic/simulator/simulationInitializer.js';
 import { saveSimulationDebugInfo, loadSimulationDebugInfo } from './logic/simulator/storage.js';
 import { Database } from './logic/simulator/database/database.js';
+import { Simulator } from './logic/simulator/engine/simulator.js'; // Import Simulator
 
 async function initializeApp() {
     D_(DB.INIT, '[App] Starting application initialization...');
@@ -31,17 +32,17 @@ async function initializeApp() {
         saveSimulationDebugInfo(Simulation);
         D_(DB.INIT, '[App] Simulation debug info saved.');
 
-        // Initialize the FPS control after Simulation is loaded
-        initializeFPSControl(Simulation);
-
         // Initialize the canvas last
         D_(DB.INIT, '[App] Initializing canvas...');
         initializeCanvas();
         D_(DB.INIT, '[App] Canvas initialized.');
 
         D_(DB.INIT, '[App] Application initialization complete.');
+
+        return Simulation; // Return the Simulation object
     } catch (error) {
         console.error('[App] Failed to initialize application:', error);
+        throw error;
     }
 }
 
@@ -55,14 +56,13 @@ function initializeFPSControl(Simulation) {
     }
 }
 
-// Update FPS dynamically when the user changes the value
-function updateFPS(newFPS, Simulation) {
+export function updateFPS(newFPS) {
     const fps = parseInt(newFPS, 10);
     if (!isNaN(fps) && fps > 0) {
-        Simulation.gridConfig.FPS = fps;
-        D_(DB.DEBUG, `[Simulation] FPS updated to: ${fps}`);
+        Simulator.updateInterval(fps); // Pass the new FPS value to the Simulator
+        D_(DB.DEBUG, `[Simulator] FPS updated to: ${fps}`);
     } else {
-        D_(DB.ERROR, '[Simulation] Invalid FPS value.');
+        D_(DB.ERROR, '[Simulator] Invalid FPS value.');
     }
 }
 
@@ -83,8 +83,8 @@ function clearSelectedAUTs() {
     }
 }
 
-// Attach the clear button event listener
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize the Clear AUTs button
     const clearAutBtn = document.getElementById('clearAutBtn');
     if (clearAutBtn) {
         clearAutBtn.addEventListener('click', clearSelectedAUTs);
@@ -92,9 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         D_(DB.ERROR, '[AUT Editor] Clear button element not found.');
     }
-});
 
-// Start the application when the DOM is fully loaded
-window.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
+    // Start the application and load the Simulation
+    const Simulation = await initializeApp();
+
+    // Initialize the FPS control
+    const fpsControl = document.getElementById('fps-control');
+    if (fpsControl) {
+        fpsControl.addEventListener('change', (event) => updateFPS(event.target.value, Simulation));
+        D_(DB.INIT, '[App] FPS control initialized.');
+    } else {
+        D_(DB.ERROR, '[App] FPS control element not found.');
+    }
 });
