@@ -14,9 +14,11 @@ export const Database = {
     GravityVectorArray: [],
     TerrainMap: [],
     terrainImages: {}, // Initialize terrainImages as an empty object
+    Simulation: null, // This will hold the loaded simulation
 
     async initialize(Simulation) {
         try {
+            this.Simulation = Simulation; // Assign Simulation to Database
             D_(DB.DB_INIT, '[Database] Starting initialization...');
 
             // Load grid configuration
@@ -245,5 +247,16 @@ export const Database = {
         }
 
         D_(DB.MSE, '[Database] Recalculated Gravity Vectors.');
+    },
+
+    deleteAUTsByType(types) {
+
+        const initialCount = this.AUTInstances.length;
+        this.AUTInstances = this.AUTInstances.filter(
+            aut => !types.includes(aut.type)
+        );
+        const removedCount = initialCount - this.AUTInstances.length;
+
+        D_(DB.DEBUG, `[Database] Removed ${removedCount} AUT(s) of types: ${types.join(', ')}`);
     },
 };

@@ -15,7 +15,7 @@ export const Simulation = {
         defaultTerrainType: 'flat',
         egfInitializer: {
             type: 'depression',
-            value: 20,
+            value: 0,
             // type: 'random',
             // minValue: 20,
             // maxValue: 220,
@@ -24,7 +24,7 @@ export const Simulation = {
             type: 'constant',
             terrainType: 'flat',
         },
-        FPS: 5, // Frames per second for the simulation
+        FPS: 10, // Frames per second for the simulation
     },
 
     // AUT Initial Positions
@@ -70,7 +70,7 @@ export const Simulation = {
             name: 'Big Red Female',
             type: 'female.aut',
             physics: {
-                mass: 8,
+                mass: 16,
                 coreSize: 16,
             },
             graphics: {
@@ -78,7 +78,7 @@ export const Simulation = {
                 color: 'red',
                 size: 16,
             },
-            rules: ['TerrainSensitivity'], // Only apply terrain sensitivity
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], // Apply both rules
         },
     ],
 
