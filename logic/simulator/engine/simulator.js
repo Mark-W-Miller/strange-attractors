@@ -2,6 +2,8 @@ import { Database } from '../database/database.js';
 import { D_, DB } from '../../../debug/DB.js';
 import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas from canvas.js
 import { Simulation } from '../../../data/initializers/default.js';
+import { DefaultRules } from './rulesEngine.js'; // Adjust path as needed
+
 export const Simulator = {
     isRunning: false,
     isPaused: false,
@@ -91,29 +93,32 @@ export const Simulator = {
         const { AUTInstances, gridConfig } = Database;
         const { positionScaleFactor, gridWidth, gridHeight } = gridConfig;
 
-        // Calculate arena dimensions
         const arenaWidth = gridWidth * positionScaleFactor;
         const arenaHeight = gridHeight * positionScaleFactor;
 
-        // Update each AUT based on its specific rules
         AUTInstances.forEach(aut => {
+            let positionUpdated = false;
             aut.rules.forEach(ruleName => {
-                const rule = Simulation.rules.find(r => r.name === ruleName);
-                if (rule) {
-                    rule.evaluate(aut, Database);
+                const ruleFn = DefaultRules[ruleName];
+                if (typeof ruleFn === 'function') {
+                    // If the rule returns true, it handled the position update
+                    if (ruleFn(aut, Database) === true) {
+                        positionUpdated = true;
+                    }
                 }
             });
 
-            // Update position in arena coordinates
-            aut.position.x += aut.velocity.x;
-            aut.position.y += aut.velocity.y;
+            // Only update position if no rule handled it
+            if (!positionUpdated) {
+                aut.position.x += aut.velocity.x;
+                aut.position.y += aut.velocity.y;
+            }
 
-            // Keep AUTs within bounds in arena coordinates
+            // Keep AUTs within bounds
             aut.position.x = Math.max(0, Math.min(arenaWidth - 1, aut.position.x));
             aut.position.y = Math.max(0, Math.min(arenaHeight - 1, aut.position.y));
         });
 
-        // Notify listeners
         this.notifyListeners();
     },
 
