@@ -3,8 +3,8 @@ export const Simulation = {
     gridConfig: {
         gridWidth: 80,
         gridHeight: 40,
-        terrainScaleFactor: 1,
-        positionScaleFactor: 32,
+        terrainScaleFactor: 2,
+        positionScaleFactor: 16,
         terrainOpacity: 0.5,
         gridLineColors: {
             EGF: '#CCCCCC',
@@ -54,7 +54,7 @@ export const Simulation = {
         },
         {
             name: 'Little Blue Male',
-            type: 'male.aut',
+            type: 'blue.male.aut',
             physics: {
                 mass: 3,
                 coreSize: 4,
@@ -64,11 +64,11 @@ export const Simulation = {
                 color: 'blue',
                 size: 12,
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], // Apply both rules
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
         },
         {
             name: 'Big Red Female',
-            type: 'female.aut',
+            type: 'red.female.aut',
             physics: {
                 mass: 16,
                 coreSize: 16,
@@ -78,8 +78,12 @@ export const Simulation = {
                 color: 'red',
                 size: 16,
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], // Apply both rules
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
         },
+    ],
+
+    bondTypes: [
+        { type: 'attraction', strength: 0.5, fromTo: 'blue.male.aut,red.female.aut' },
     ],
 
     // Terrain Types
