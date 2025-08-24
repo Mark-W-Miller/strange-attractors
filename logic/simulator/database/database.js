@@ -15,6 +15,8 @@ export const Database = {
     TerrainMap: [],
     terrainImages: {}, // Initialize terrainImages as an empty object
     Simulation: null, // This will hold the loaded simulation
+    bondTypes: [],
+    bondTypeMap: {},
 
     async initialize(Simulation) {
         try {
@@ -80,6 +82,10 @@ export const Database = {
             // Log debugging information
             this.logDebugInfo();
 
+            // Build bond type map for fast lookup
+            this.bondTypes = Simulation.bondTypes || [];
+            this.bondTypeMap = buildBondTypeMap(this.bondTypes);
+
             D_(DB.DB_INIT, '[Database] Initialization complete.');
         } catch (error) {
             D_(DB.DB_INIT, '[Database] Failed to initialize:', error);
@@ -141,7 +147,7 @@ export const Database = {
 
         const autInstance = {
             id: `${typeName}-${Date.now()}`, // Unique ID
-            type: typeName,
+            type: type.type,
             position: { x, y }, // Store coordinates under position
             velocity: { x: 0, y: 0 }, // Default velocity
             rules: type.rules || [], // Assign rules from autType
@@ -259,4 +265,39 @@ export const Database = {
 
         D_(DB.DEBUG, `[Database] Removed ${removedCount} AUT(s) of types: ${types.join(', ')}`);
     },
+
+    getBondTypeMap() {
+        return this.bondTypeMap || {};
+    },
+
+    getBondTypes() {
+        return this.bondTypes || [];
+    },
+
+    /**
+     * Returns the list of bond definitions for a given AUT type as 'from'.
+     * @param {string} autType - The AUT type to look up as 'from'.
+     * @returns {Array} Array of bond definitions, or empty array if none.
+     */
+    getBondsForType(autType) {
+        const map = this.getBondTypeMap();
+        return map[autType] || [];
+    },
 };
+
+/**
+ * Build a map of bond types for fast lookup.
+ * Key: 'from' AUT type (first in fromTo string)
+ * Value: Array of bond definitions where this type is the 'from'
+ */
+function buildBondTypeMap(bondTypes) {
+    const bondTypeMap = {};
+    for (const bond of bondTypes) {
+        const [from, to] = bond.fromTo.split(',');
+        if (!bondTypeMap[from]) {
+            bondTypeMap[from] = [];
+        }
+        bondTypeMap[from].push({ ...bond, to });
+    }
+    return bondTypeMap;
+}

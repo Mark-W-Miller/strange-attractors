@@ -2,7 +2,7 @@ import { Database } from '../database/database.js';
 import { D_, DB } from '../../../debug/DB.js';
 import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas from canvas.js
 import { Simulation } from '../../../data/initializers/default.js';
-import { DefaultRules } from './rulesEngine.js'; // Adjust path as needed
+import { DefaultRules, updateAUTPositions } from './rulesEngine.js'; // Adjust path as needed
 
 export const Simulator = {
     isRunning: false,
@@ -96,28 +96,8 @@ export const Simulator = {
         const arenaWidth = gridWidth * positionScaleFactor;
         const arenaHeight = gridHeight * positionScaleFactor;
 
-        AUTInstances.forEach(aut => {
-            let positionUpdated = false;
-            aut.rules.forEach(ruleName => {
-                const ruleFn = DefaultRules[ruleName];
-                if (typeof ruleFn === 'function') {
-                    // If the rule returns true, it handled the position update
-                    if (ruleFn(aut, Database) === true) {
-                        positionUpdated = true;
-                    }
-                }
-            });
-
-            // Only update position if no rule handled it
-            if (!positionUpdated) {
-                aut.position.x += aut.velocity.x;
-                aut.position.y += aut.velocity.y;
-            }
-
-            // Keep AUTs within bounds
-            aut.position.x = Math.max(0, Math.min(arenaWidth - 1, aut.position.x));
-            aut.position.y = Math.max(0, Math.min(arenaHeight - 1, aut.position.y));
-        });
+        // Use the new function from rulesEngine to handle AUT updates and bonding
+        updateAUTPositions(AUTInstances, DefaultRules, Database, arenaWidth, arenaHeight);
 
         this.notifyListeners();
     },

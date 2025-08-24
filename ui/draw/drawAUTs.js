@@ -13,29 +13,33 @@ export function drawAUTs(ctx, width, height) {
     allAUTs.sort((a, b) => b.graphics.size - a.graphics.size);
 
     // Helper function to draw a single AUT
-    const drawAUT = ({ position, graphics }) => {
+    const drawAUT = ({ position, graphics, bondedTo }) => {
         if (!position || !graphics) {
             D_(DB.DRAW, `[drawAUTs] Skipping AUT due to missing position or graphics.`);
             return;
         }
 
         const { x, y } = position;
-
-        // Debug: Log all details about the AUT being drawn
         D_(DB.DRAW, `[drawAUTs] AUT Details:`, { x, y, graphics });
 
-        const size = graphics.size * Math.min(cellWidth, cellHeight); // Scale size from Arena Space to Canvas Space
-        const screenX = x * cellWidth; // Translate x from Arena Space to Canvas Space
-        const screenY = y * cellHeight; // Translate y from Arena Space to Canvas Space
+        const size = graphics.size * Math.min(cellWidth, cellHeight);
+        const screenX = x * cellWidth;
+        const screenY = y * cellHeight;
 
         D_(DB.DRAW, `[drawAUTs] Drawing AUT at Arena (${x}, ${y}) -> Canvas (${screenX.toFixed(2)}, ${screenY.toFixed(2)}): size=${size.toFixed(2)}, color=${graphics.color}`);
 
         ctx.fillStyle = graphics.color || 'black';
 
+        // Draw shape
         if (graphics.shape === 'circle') {
             ctx.beginPath();
             ctx.arc(screenX, screenY, size / 2, 0, Math.PI * 2);
             ctx.fill();
+            if (bondedTo) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         } else if (graphics.shape === 'square') {
             ctx.fillRect(
                 screenX - size / 2,
@@ -43,6 +47,16 @@ export function drawAUTs(ctx, width, height) {
                 size,
                 size
             );
+            if (bondedTo) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(
+                    screenX - size / 2,
+                    screenY - size / 2,
+                    size,
+                    size
+                );
+            }
         } else if (graphics.shape === 'triangle') {
             ctx.beginPath();
             ctx.moveTo(screenX, screenY - size / 2);
@@ -50,6 +64,11 @@ export function drawAUTs(ctx, width, height) {
             ctx.lineTo(screenX + size / 2, screenY + size / 2);
             ctx.closePath();
             ctx.fill();
+            if (bondedTo) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         } else {
             D_(DB.DRAW, `[drawAUTs] Unknown shape for AUT at (${x}, ${y}):`, graphics.shape);
         }

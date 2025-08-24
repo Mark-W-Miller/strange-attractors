@@ -1,3 +1,5 @@
+import { D_, DB } from '../../../debug/DB.js';
+
 function gravityVectorSensitivity(aut, database) {
     const { position, velocity, physics } = aut;
     const { GravityVectorArray, gridConfig } = database;
@@ -194,3 +196,76 @@ export const DefaultRules = {
     GravityVectorSensitivity: gravityVectorSensitivity,
     TerrainSensitivity: terrainSensitivity
 };
+
+// Add this function above updateAUTPositions
+function bondingRule(aut, AUTInstances, bondTypes) {
+    // Find bond definition for this AUT type
+    const bondDefs = bondTypes[aut.type] || [];
+    // If already bonded, adjust velocity toward partner
+    if (aut.bondedTo) {
+        const partner = AUTInstances.find(a => a.id === aut.bondedTo);
+        if (partner) {
+            const bondDef = bondDefs.find(b => b.to === partner.type);
+            if (bondDef) {
+                const dx = partner.position.x - aut.position.x;
+                const dy = partner.position.y - aut.position.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                const nx = dx / dist;
+                const ny = dy / dist;
+                aut.velocity.x += nx * bondDef.strength;
+                aut.velocity.y += ny * bondDef.strength;
+            }
+        }
+        return;
+    }
+    // If not bonded, look for a nearby unbonded partner of required type
+    for (const bondDef of bondDefs) {
+        const radius = aut.graphics.size;
+        for (const candidate of AUTInstances) {
+            if (
+                candidate.type === bondDef.to &&
+                !candidate.bondedTo &&
+                candidate !== aut
+            ) {
+                const dx = candidate.position.x - aut.position.x;
+                const dy = candidate.position.y - aut.position.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) * 5;
+                if (dist <= radius) {
+                    aut.bondedTo = candidate.id;
+                    candidate.bondedTo = aut.id;
+                    D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+// Update updateAUTPositions to call bondingRule for each AUT
+export function updateAUTPositions(AUTInstances, DefaultRules, Database, arenaWidth, arenaHeight) {
+    const bondTypes = Database.getBondTypeMap();
+    AUTInstances.forEach(aut => {
+        bondingRule(aut, AUTInstances, bondTypes);
+
+        let positionUpdated = false;
+        aut.rules.forEach(ruleName => {
+            const ruleFn = DefaultRules[ruleName];
+            if (typeof ruleFn === 'function') {
+                // If the rule returns true, it handled the position update
+                if (ruleFn(aut, Database) === true) {
+                    positionUpdated = true;
+                }
+            }
+        });
+
+        // Only update position if no rule handled it
+        if (!positionUpdated) {
+            aut.position.x += aut.velocity.x;
+            aut.position.y += aut.velocity.y;
+        }
+
+        // Keep AUTs within bounds
+        aut.position.x = Math.max(0, Math.min(arenaWidth - 1, aut.position.x));
+        aut.position.y = Math.max(0, Math.min(arenaHeight - 1, aut.position.y));
+    });
+}
