@@ -1,4 +1,5 @@
 import { D_, DB } from '../../../debug/DB.js';
+import { Database } from '../database/database.js'; // Import Database
 
 /**
  * Evaluates bonding for a single AUT.
@@ -12,8 +13,8 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     if (aut.bondedTo) {
         const partner = AUTInstances.find(a => a.id === aut.bondedTo);
         if (partner) {
-            const bondDef = bondDefs.find(b => b.to === partner.type);
-            if (bondDef && bondDef.type === 'attraction') {
+            const bondDef = bondDefs.find(b => b.to === partner.type && b.type === 'attraction');
+            if (bondDef) {
                 const dx = partner.position.x - aut.position.x;
                 const dy = partner.position.y - aut.position.y;
                 const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -28,7 +29,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     // Check for absorb bonds and handle absorption
     for (const bondDef of bondDefs) {
         const radius = aut.graphics.size;
-        for (const candidate of AUTInstances) {
+        for (const candidate of AUTInstances.slice()) { // Use slice to avoid mutation issues
             if (
                 candidate.type === bondDef.to &&
                 candidate !== aut
@@ -38,19 +39,17 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist <= radius) {
                     if (bondDef.type === 'absorb') {
-                        // Absorb: remove candidate and increase aut's mass and size
                         aut.physics.mass += bondDef.massAbsorb * (candidate.physics?.mass || 1);
                         aut.graphics.size += bondDef.sizeGrowth * (candidate.graphics?.size || 1);
-                        const idx = AUTInstances.indexOf(candidate);
-                        if (idx !== -1) AUTInstances.splice(idx, 1);
+                        Database.removeAUTInstanceById(candidate.id); // Use Database function instead of direct splice
                         D_(DB.EVENTS, `Absorb: ${aut.id} (${aut.type}) absorbed ${candidate.id} (${candidate.type})`);
-                        return;
+                        continue;
                     }
                     if (!aut.bondedTo && bondDef.type === 'attraction' && !candidate.bondedTo) {
                         aut.bondedTo = candidate.id;
                         candidate.bondedTo = aut.id;
                         D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
-                        return;
+                        return; // Return after first pair bond
                     }
                 }
             }

@@ -284,6 +284,28 @@ export const Database = {
         const map = this.getBondTypeMap();
         return map[autType] || [];
     },
+
+    /**
+     * Removes an AUT instance by id and clears its bond on any partner.
+     * @param {string} autId - The id of the AUT to remove.
+     */
+    removeAUTInstanceById(autId) {
+        const aut = this.AUTInstances.find(a => a.id === autId);
+        if (!aut) return;
+
+        // Clear bond on partner if bonded
+        if (aut.bondedTo) {
+            const partner = this.AUTInstances.find(a => a.id === aut.bondedTo);
+            if (partner) {
+                partner.bondedTo = null;
+                D_(DB.EVENTS, `[Database] Bond broken: ${partner.id} (${partner.type}) no longer bonded to ${aut.id} (${aut.type})`);
+            }
+        }
+
+        // Remove AUT from AUTInstances
+        this.AUTInstances = this.AUTInstances.filter(a => a.id !== autId);
+        D_(DB.EVENTS, `[Database] Removed AUT instance: ${aut.id} (${aut.type})`);
+    },
 };
 
 /**
