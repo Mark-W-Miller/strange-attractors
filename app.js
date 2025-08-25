@@ -71,7 +71,7 @@ function clearSelectedAUTs() {
     if (autTypeSelect) {
         const selectedOptions = Array.from(autTypeSelect.selectedOptions);
         if (selectedOptions.length > 0) {
-            const selectedTypes = selectedOptions.map(option => option.value);
+            const selectedTypes = selectedOptions.map(option => option.getAttribute('data-type'));
 
             // Use the Database to delete AUTs of the selected types
             Database.deleteAUTsByType(selectedTypes);

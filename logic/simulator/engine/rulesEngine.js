@@ -229,12 +229,12 @@ function bondingRule(aut, AUTInstances, bondTypes) {
             ) {
                 const dx = candidate.position.x - aut.position.x;
                 const dy = candidate.position.y - aut.position.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) * 5;
+                const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist <= radius) {
                     aut.bondedTo = candidate.id;
                     candidate.bondedTo = aut.id;
                     D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
-                    break;
+                    return;
                 }
             }
         }

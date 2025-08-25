@@ -139,6 +139,7 @@ export const Database = {
         D_(DB.DB_INIT, '[Database] Terrain images loaded:', this.terrainImages);
     },
 
+    
     addAUTInstance(typeName, x, y) {
         const type = this.AUTTypes[typeName];
         if (!type) {
@@ -146,7 +147,7 @@ export const Database = {
         }
 
         const autInstance = {
-            id: `${typeName}-${Date.now()}`, // Unique ID
+            id: `${typeName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
             type: type.type,
             position: { x, y }, // Store coordinates under position
             velocity: { x: 0, y: 0 }, // Default velocity

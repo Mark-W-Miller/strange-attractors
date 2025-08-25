@@ -34,7 +34,8 @@ export function handleEditAUT(e, buttonType) {
     const largestAUT = selectedTypes.reduce((largest, type) => {
         const graphics = Database.AUTTypes[type].graphics;
         return graphics.size > largest.graphics.size ? { type, graphics } : largest;
-    }, { type: selectedTypes[0], graphics: Database.AUTTypes[selectedTypes[0]].graphics }); // Initialize with the first selected type
+    }, 
+    { type: selectedTypes[0], graphics: Database.AUTTypes[selectedTypes[0]].graphics }); // Initialize with the first selected type
 
     const { graphics: largestGraphics } = largestAUT;
 

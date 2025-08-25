@@ -111,10 +111,11 @@ function populateAUTTypes() {
         return isValid;
     });
 
-    validAUTTypes.forEach(([name], index) => {
+    validAUTTypes.forEach(([name, typeData], index) => {
         const option = document.createElement('option');
         option.value = name;
         option.textContent = name;
+        option.setAttribute('data-type', typeData.type); // Add AUT type for later access
 
         // Set the first option as selected by default
         if (index === 0) {

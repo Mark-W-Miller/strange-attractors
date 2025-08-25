@@ -83,7 +83,8 @@ export const Simulation = {
     ],
 
     bondTypes: [
-        { type: 'attraction', strength: 2.5, fromTo: 'blue.male.aut,red.female.aut' },
+        { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
+       { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
     ],
 
     // Terrain Types
