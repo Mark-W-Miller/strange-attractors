@@ -151,9 +151,9 @@ export const Database = {
             type: type.type,
             position: { x, y }, // Store coordinates under position
             velocity: { x: 0, y: 0 }, // Default velocity
-            rules: type.rules || [], // Assign rules from autType
-            physics: type.physics, // Include physics properties
-            graphics: type.graphics, // Include graphics properties
+            rules: type.rules ? [...type.rules] : [], // Assign rules from autType
+            physics: { ...type.physics },      // <-- clone!
+            graphics: { ...type.graphics },    // <-- clone!
         };
 
         this.AUTInstances.push(autInstance);

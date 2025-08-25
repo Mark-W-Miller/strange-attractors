@@ -1,8 +1,8 @@
 export const Simulation = {
     // Grid Configuration
     gridConfig: {
-        gridWidth: 80,
-        gridHeight: 40,
+        gridWidth: 160,
+        gridHeight: 80,
         terrainScaleFactor: 2,
         positionScaleFactor: 16,
         terrainOpacity: 0.5,
@@ -85,7 +85,8 @@ export const Simulation = {
     bondTypes: [
     { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
        { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
-       { type: 'absorb', strength: 1,fromTo: 'blue.male.aut,aut' },
+       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,aut' },
+       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,aut' },
     ],
 
     // Terrain Types
