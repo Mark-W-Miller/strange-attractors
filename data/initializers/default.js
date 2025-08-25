@@ -38,7 +38,7 @@ export const Simulation = {
     // AUT Types
     autTypes: [
         {
-            name: 'Basic',
+            name: 'Food',
             type: 'aut',
             physics: {
                 mass: 1,
@@ -77,6 +77,7 @@ export const Simulation = {
                 shape: 'circle',
                 color: 'red',
                 size: 16,
+                splitSize: 64,
             },
             rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
         },

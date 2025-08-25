@@ -1,6 +1,7 @@
 import { D_, DB } from '../../debug/DB.js';
 import { Database } from '../../logic/simulator/database/database.js';
 import { redrawCanvas } from '../canvas.js';
+import { selectedBrushShape, cursorSize } from '../eventHandlers.js';
 
 export function handleEditAUT(e, buttonType) {
     const canvasAUT = document.getElementById('canvas-AUT');
@@ -39,35 +40,47 @@ export function handleEditAUT(e, buttonType) {
 
     const { graphics: largestGraphics } = largestAUT;
 
-    // Check for overlap using the largest AUT
-    const doesOverlap = window.tempAUTPlacements.some(({ position: existingPosition, graphics: existingGraphics }) => {
-        const dx = existingPosition.x - x;
-        const dy = existingPosition.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    // Spread AUTs out if cursor is large
+    const spreadRadius = Math.max(1, Math.floor(cursorSize / 2));
+    const numAUTs = Math.max(1, Math.floor(cursorSize / 8));
+    const angleStep = (2 * Math.PI) / numAUTs;
 
-        // Minimum distance is based on the size of the largest AUT
-        const minDistance = Math.max(existingGraphics.size, largestGraphics.size);
+    let placed = 0;
+    for (let i = 0; i < numAUTs; i++) {
+        const angle = i * angleStep;
+        const px = Math.floor(x + Math.cos(angle) * spreadRadius);
+        const py = Math.floor(y + Math.sin(angle) * spreadRadius);
 
-        return distance < minDistance;
-    });
-
-    if (doesOverlap) {
-        D_(DB.UI, `[AUTEditor] Skipping placement at (${x}, ${y}) due to overlap.`);
-        return;
-    }
-
-    // Add all selected AUTs to temporary placements
-    selectedTypes.forEach(type => {
-        const graphics = Database.AUTTypes[type].graphics;
-
-        window.tempAUTPlacements.push({
-            type,
-            position: { x, y },
-            graphics,
+        // Check for overlap using the largest AUT
+        const doesOverlap = window.tempAUTPlacements.some(({ position: existingPosition, graphics: existingGraphics }) => {
+            const dx = existingPosition.x - px;
+            const dy = existingPosition.y - py;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = Math.max(existingGraphics.size, largestGraphics.size);
+            return distance < minDistance;
         });
 
-        D_(DB.UI, `[AUTEditor] Placed AUT of type ${type} at (${x}, ${y}).`);
-    });
+        if (doesOverlap) {
+            D_(DB.UI, `[AUTEditor] Skipping placement at (${px}, ${py}) due to overlap.`);
+            continue;
+        }
+
+        // Add all selected AUTs to temporary placements at this position
+        selectedTypes.forEach(type => {
+            const graphics = Database.AUTTypes[type].graphics;
+            window.tempAUTPlacements.push({
+                type,
+                position: { x: px, y: py },
+                graphics,
+            });
+            D_(DB.UI, `[AUTEditor] Placed AUT of type ${type} at (${px}, ${py}).`);
+        });
+        placed++;
+    }
+
+    if (placed === 0) {
+        D_(DB.UI, `[AUTEditor] No AUTs placed due to overlap.`);
+    }
 
     // Trigger a canvas redraw to show the newly placed AUTs
     redrawCanvas();
