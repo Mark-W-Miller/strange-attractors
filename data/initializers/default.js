@@ -64,7 +64,7 @@ export const Simulation = {
                 color: 'blue',
                 size: 12,
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
+            rules: ['GravityVectorSensitivity'], 
         },
         {
             name: 'Big Red Female',
@@ -83,8 +83,9 @@ export const Simulation = {
     ],
 
     bondTypes: [
-        { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
+    { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
        { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
+       { type: 'absorb', strength: 1,fromTo: 'blue.male.aut,aut' },
     ],
 
     // Terrain Types
