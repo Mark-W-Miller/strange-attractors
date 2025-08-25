@@ -257,6 +257,27 @@ export const Database = {
     },
 
     deleteAUTsByType(types) {
+        const toDelete = this.AUTInstances.filter(aut => types.includes(aut.type));
+        const toDeleteIds = toDelete.map(aut => aut.id);
+
+        // Clear pair bonds on AUTs to be deleted and their partners
+        toDelete.forEach(aut => {
+            // Clear bond on partner if bonded
+            if (aut.bondedTo) {
+                const partner = this.AUTInstances.find(a => a.id === aut.bondedTo);
+                if (partner) {
+                    partner.bondedTo = null;
+                    D_(DB.EVENTS, `[Database] Bond broken: ${partner.id} (${partner.type}) no longer bonded to ${aut.id} (${aut.type})`);
+                }
+            }
+            // Clear any bonds where other AUTs are bonded to this AUT
+            this.AUTInstances.forEach(a => {
+                if (a.bondedTo === aut.id) {
+                    a.bondedTo = null;
+                    D_(DB.EVENTS, `[Database] Bond broken: ${a.id} (${a.type}) no longer bonded to ${aut.id} (${aut.type})`);
+                }
+            });
+        });
 
         const initialCount = this.AUTInstances.length;
         this.AUTInstances = this.AUTInstances.filter(
@@ -287,6 +308,7 @@ export const Database = {
 
     /**
      * Removes an AUT instance by id and clears its bond on any partner.
+     * Also clears any pair bonds where other AUTs are bonded to this AUT.
      * @param {string} autId - The id of the AUT to remove.
      */
     removeAUTInstanceById(autId) {
@@ -301,6 +323,14 @@ export const Database = {
                 D_(DB.EVENTS, `[Database] Bond broken: ${partner.id} (${partner.type}) no longer bonded to ${aut.id} (${aut.type})`);
             }
         }
+
+        // Clear any bonds where other AUTs are bonded to this AUT
+        this.AUTInstances.forEach(a => {
+            if (a.bondedTo === autId) {
+                a.bondedTo = null;
+                D_(DB.EVENTS, `[Database] Bond broken: ${a.id} (${a.type}) no longer bonded to ${aut.id} (${aut.type})`);
+            }
+        });
 
         // Remove AUT from AUTInstances
         this.AUTInstances = this.AUTInstances.filter(a => a.id !== autId);

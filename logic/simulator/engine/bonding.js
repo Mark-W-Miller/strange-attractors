@@ -43,6 +43,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                         aut.graphics.size += bondDef.sizeGrowth * (candidate.graphics?.size || 1);
                         Database.removeAUTInstanceById(candidate.id); // Use Database function instead of direct splice
                         D_(DB.EVENTS, `Absorb: ${aut.id} (${aut.type}) absorbed ${candidate.id} (${candidate.type})`);
+                        checkAndSplitAUT(aut); // <-- Add this call
                         continue;
                     }
                     if (!aut.bondedTo && bondDef.type === 'attraction' && !candidate.bondedTo) {
@@ -55,4 +56,43 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
             }
         }
     }
+}
+
+/**
+ * Checks if the AUT has reached splitSize and splits it in two if needed.
+ * Removes pair bonds on the original, resets its size and mass, and creates a new AUT nearby.
+ */
+function checkAndSplitAUT(aut) {
+    const splitSize = aut.graphics.splitSize;
+    if (!splitSize || aut.graphics.size < splitSize) return;
+
+    // Save original size and mass
+    const originalSize = splitSize / 2;
+    const originalMass = aut.physics.mass / 2;
+
+    // Remove pair bond on original and its partner
+    if (aut.bondedTo) {
+        const partner = Database.AUTInstances.find(a => a.id === aut.bondedTo);
+        if (partner) partner.bondedTo = null;
+        aut.bondedTo = null;
+    }
+
+    // Reset original AUT's size and mass
+    aut.graphics.size = originalSize;
+    aut.physics.mass = originalMass;
+
+    // Create new AUT instance (clone)
+    const newAUT = {
+        ...aut,
+        id: `${aut.type}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+        position: {
+            x: aut.position.x + originalSize,
+            y: aut.position.y + originalSize
+        },
+        velocity: { x: -aut.velocity.x, y: -aut.velocity.y },
+        bondedTo: null
+    };
+    Database.AUTInstances.push(newAUT);
+
+    D_(DB.EVENTS, `Split: ${aut.id} (${aut.type}) split into two AUTs.`);
 }
