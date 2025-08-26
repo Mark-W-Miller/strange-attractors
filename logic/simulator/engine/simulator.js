@@ -120,12 +120,31 @@ export const Simulator = {
         });
     },
 
+    handleDeath(AUTInstances, Database) {
+        const now = Date.now();
+        // Remove AUTs whose lifetime has expired
+        AUTInstances.slice().forEach(aut => {
+            if (aut.physics && aut.physics.lifeTime) {
+                // Track birth time
+                if (!aut.birthTime) aut.birthTime = now;
+                // If lifetime exceeded, remove AUT
+                if (now - aut.birthTime >= aut.physics.lifeTime) {
+                    Database.removeAUTInstanceById(aut.id);
+                    D_(DB.EVENTS, `[Simulator] AUT ${aut.id} (${aut.type}) died of old age.`);
+                }
+            }
+        });
+    },
+
     updateSimulation() {
         const { AUTInstances, gridConfig } = Database;
         const { positionScaleFactor, gridWidth, gridHeight } = gridConfig;
 
         const arenaWidth = gridWidth * positionScaleFactor;
         const arenaHeight = gridHeight * positionScaleFactor;
+
+        // Handle deaths before anything else
+        this.handleDeath(AUTInstances, Database);
 
         // Handle spawns before updating AUT positions
         this.handleSpawns(AUTInstances, Database);

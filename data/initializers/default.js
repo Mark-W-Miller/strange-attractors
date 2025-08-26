@@ -56,15 +56,15 @@ export const Simulation = {
             name: 'Killer',
             type: 'killer.aut',
             physics: {
-                lifeTime: 10000,
+                lifeTime: 300,
             },
 
             graphics: {
                 shape: 'square',
-                color: 'black',
+                color: 'red',
                 size: 8,
             },
-            rules: ['TerrainSensitivity','GravityVectorSensitivity'], // Only apply gravity
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], // Only apply gravity
         },
         {
             name: 'Food',
@@ -73,13 +73,14 @@ export const Simulation = {
                 mass: 1,
                 coreSize: 4,
                 maxSpeed: 10,
+                lifeTime: 10000,
             },
             graphics: {
                 shape: 'circle',
                 color: 'green',
                 size: 8,
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'],
         },
         {
             name: 'Food Source',
@@ -106,7 +107,7 @@ export const Simulation = {
             },
             graphics: {
                 shape: 'square',
-                color: 'green',
+                color: 'black',
                 size: 10,
             },
             spawn: {
@@ -143,8 +144,8 @@ export const Simulation = {
                 size: 12,
                 maxSize: 48,
                 bondSize: 32,
-          },
-            rules: ['GravityVectorSensitivity'], 
+            },
+            rules: ['GravityVectorSensitivity'],
         },
         {
             name: 'Big Red Female',
@@ -159,20 +160,55 @@ export const Simulation = {
                 size: 16,
                 bondSize: 32,
                 splitSize: 64,
+                splitTo: 'red.female.aut,blue.male.aut',
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'],
+        },
+        {
+            name: 'Female Source',
+            type: 'red.female.source.aut',
+            physics: {
+                maxSpeed: 0,
+            },
+            graphics: {
+                shape: 'circle',
+                color: 'red',
+                size: 20,
+            },
+            spawn: {
+                autType: 'red.female.aut',
+                frequency: 1000,
+            },
+            rules: [],
+        },
+        {
+            name: 'Blue Male Source',
+            type: 'blue.male.source.aut',
+            physics: {
+                maxSpeed: 0,
+            },
+            graphics: {
+                shape: 'triangle',
+                color: 'blue',
+                size: 20,
+            },
+            spawn: {
+                autType: 'blue.male.aut',
+                frequency: 1000,
+            },
+            rules: [],
         },
     ],
 
     bondTypes: [
-    { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
-       { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
-       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,food.aut' },
-       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,food.aut' },
-       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,ground.food.aut' },
-       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,ground.food.aut' },
-       { type: 'kill', damage: 1,fromTo: 'blue.male.aut,killer.aut' },
-       { type: 'kill', damage: 1, sizeGrowth:0.2,fromTo: 'red.female.aut,killer.aut' },
+        { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
+        { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
+        { type: 'absorb', massAbsorb: 0.5, sizeGrowth: 0.1, fromTo: 'blue.male.aut,food.aut' },
+        { type: 'absorb', massAbsorb: 0.8, sizeGrowth: 0.2, fromTo: 'red.female.aut,food.aut' },
+        { type: 'absorb', massAbsorb: 0.5, sizeGrowth: 0.1, fromTo: 'blue.male.aut,ground.food.aut' },
+        { type: 'absorb', massAbsorb: 0.8, sizeGrowth: 0.2, fromTo: 'red.female.aut,ground.food.aut' },
+        { type: 'kill', damage: 1, fromTo: 'blue.male.aut,killer.aut' },
+        { type: 'kill', damage: 1, sizeGrowth: 0.2, fromTo: 'red.female.aut,killer.aut' },
     ],
 
     // Terrain Types
