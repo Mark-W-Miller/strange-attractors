@@ -12,6 +12,10 @@ export function drawAUTs(ctx, width, height) {
     const allAUTs = [...Database.AUTInstances, ...(window.tempAUTPlacements || [])];
     allAUTs.sort((a, b) => b.graphics.size - a.graphics.size);
 
+    // Split AUTs into sources (those with a spawn property) and the rest
+    const sources = allAUTs.filter(aut => aut.spawn);
+    const nonSources = allAUTs.filter(aut => !aut.spawn);
+
     // Helper function to draw a single AUT
     const drawAUT = ({ position, graphics, bondedTo }) => {
         if (!position || !graphics) {
@@ -74,8 +78,10 @@ export function drawAUTs(ctx, width, height) {
         }
     };
 
-    // Draw all AUTs
-    allAUTs.forEach(drawAUT);
+    // Draw sources first
+    sources.forEach(drawAUT);
+    // Then draw the rest
+    nonSources.forEach(drawAUT);
 
     D_(DB.DRAW, '[drawAUTs] Finished rendering AUT layer.');
 }
