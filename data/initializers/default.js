@@ -1,8 +1,8 @@
 export const Simulation = {
     // Grid Configuration
     gridConfig: {
-        gridWidth: 160,
-        gridHeight: 80,
+        gridWidth: 120,
+        gridHeight: 60,
         terrainScaleFactor: 2,
         positionScaleFactor: 16,
         terrainOpacity: 0.5,
@@ -38,7 +38,7 @@ export const Simulation = {
     // AUT Types
     autTypes: [
         {
-            name: 'Food',
+            name: 'basic',
             type: 'aut',
             physics: {
                 mass: 1,
@@ -51,6 +51,69 @@ export const Simulation = {
                 size: 8,
             },
             rules: ['GravityVectorSensitivity'], // Only apply gravity
+        },
+        {
+            name: 'Killer',
+            type: 'killer.aut',
+            physics: {
+                lifeTime: 10000,
+            },
+
+            graphics: {
+                shape: 'square',
+                color: 'black',
+                size: 8,
+            },
+            rules: ['TerrainSensitivity','GravityVectorSensitivity'], // Only apply gravity
+        },
+        {
+            name: 'Food',
+            type: 'food.aut',
+            physics: {
+                mass: 1,
+                coreSize: 4,
+                maxSpeed: 10,
+            },
+            graphics: {
+                shape: 'circle',
+                color: 'green',
+                size: 8,
+            },
+            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
+        },
+        {
+            name: 'Food Source',
+            type: 'source.aut',
+            physics: {
+                maxSpeed: 0,
+            },
+            graphics: {
+                shape: 'square',
+                color: 'green',
+                size: 10,
+            },
+            spawn: {
+                autType: 'food.aut',
+                frequency: 1000,
+            },
+            rules: [],
+        },
+        {
+            name: 'killer Source',
+            type: 'killer.source.aut',
+            physics: {
+                maxSpeed: 0,
+            },
+            graphics: {
+                shape: 'square',
+                color: 'green',
+                size: 10,
+            },
+            spawn: {
+                autType: 'killer.aut',
+                frequency: 1000,
+            },
+            rules: [],
         },
         {
             name: 'Ground Food',
@@ -104,10 +167,12 @@ export const Simulation = {
     bondTypes: [
     { type: 'attraction', strength: 12, fromTo: 'blue.male.aut,red.female.aut' },
        { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
-       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,aut' },
-       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,aut' },
+       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,food.aut' },
+       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,food.aut' },
        { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,ground.food.aut' },
        { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,ground.food.aut' },
+       { type: 'kill', damage: 1,fromTo: 'blue.male.aut,killer.aut' },
+       { type: 'kill', damage: 1, sizeGrowth:0.2,fromTo: 'red.female.aut,killer.aut' },
     ],
 
     // Terrain Types

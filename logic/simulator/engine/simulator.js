@@ -89,12 +89,46 @@ export const Simulator = {
         }, interval); // Use the calculated interval
     },
 
+    handleSpawns(AUTInstances, Database) {
+        const now = Date.now();
+        AUTInstances.forEach(aut => {
+            if (aut.spawn && aut.spawn.frequency > 0 && aut.spawn.autType) {
+                // Initialize lastSpawn if not present
+                if (!aut.lastSpawn) aut.lastSpawn = 0;
+                // Check if enough time has passed
+                if (now - aut.lastSpawn >= aut.spawn.frequency) {
+                    // Find the AUT type definition
+                    const spawnTypeDef = Object.values(Database.AUTTypes).find(t => t.type === aut.spawn.autType);
+                    if (spawnTypeDef) {
+                        // Create a new AUT instance at the spawner's location
+                        const newAUT = {
+                            id: `${spawnTypeDef.type}-${now}-${Math.floor(Math.random() * 1e6)}`,
+                            type: spawnTypeDef.type,
+                            position: { ...aut.position },
+                            velocity: { x: 0, y: 0 },
+                            rules: spawnTypeDef.rules ? [...spawnTypeDef.rules] : [],
+                            physics: { ...spawnTypeDef.physics },
+                            graphics: { ...spawnTypeDef.graphics },
+                            lastSpawn: 0 // New AUTs start with no spawn history
+                        };
+                        Database.AUTInstances.push(newAUT);
+                        aut.lastSpawn = now;
+                        D_(DB.EVENTS, `[Simulator] Spawned ${spawnTypeDef.type} at (${aut.position.x}, ${aut.position.y})`);
+                    }
+                }
+            }
+        });
+    },
+
     updateSimulation() {
         const { AUTInstances, gridConfig } = Database;
         const { positionScaleFactor, gridWidth, gridHeight } = gridConfig;
 
         const arenaWidth = gridWidth * positionScaleFactor;
         const arenaHeight = gridHeight * positionScaleFactor;
+
+        // Handle spawns before updating AUT positions
+        this.handleSpawns(AUTInstances, Database);
 
         // Use the new function from rulesEngine to handle AUT updates and bonding
         updateAUTPositions(AUTInstances, DefaultRules, Database, arenaWidth, arenaHeight);

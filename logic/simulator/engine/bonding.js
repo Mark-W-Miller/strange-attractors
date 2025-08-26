@@ -52,6 +52,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                         checkAndSplitAUT(aut);
                         continue;
                     }
+                    
                     if (
                         !aut.bondedTo &&
                         bondDef.type === 'attraction' &&
@@ -63,6 +64,10 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                         checkAndSplitAUT(aut); // <-- Add this call
                         D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
                         return; // Return after first pair bond
+                    }
+                    if (bondDef.type === 'kill') {
+                        handleKillBond(aut, candidate, bondDef);
+                        return;
                     }
                 }
             }
@@ -112,4 +117,20 @@ function checkAndSplitAUT(aut) {
         aut.graphics.size = splitSize;
         D_(DB.EVENTS, `Size capped: ${aut.id} (${aut.type}) size set to splitSize (${splitSize}).`);
     }
+}
+
+function handleKillBond(aut, candidate, bondDef) {
+    // Apply damage to candidate
+    candidate.graphics.size -= bondDef.damage;
+    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) damaged ${candidate.id} (${candidate.type}) by ${bondDef.damage}. New size: ${candidate.graphics.size}`);
+
+    // If candidate's size is 0 or less, remove it
+    if (candidate.graphics.size <= 0) {
+        Database.removeAUTInstanceById(candidate.id);
+        D_(DB.EVENTS, `Kill: ${candidate.id} (${candidate.type}) was destroyed.`);
+    }
+
+    // The kill AUT always dies
+    Database.removeAUTInstanceById(aut.id);
+    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) self-destructed after attack.`);
 }

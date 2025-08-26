@@ -149,11 +149,13 @@ export const Database = {
         const autInstance = {
             id: `${typeName}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
             type: type.type,
-            position: { x, y }, // Store coordinates under position
-            velocity: { x: 0, y: 0 }, // Default velocity
-            rules: type.rules ? [...type.rules] : [], // Assign rules from autType
-            physics: { ...type.physics },      // <-- clone!
-            graphics: { ...type.graphics },    // <-- clone!
+            position: { x, y },
+            velocity: { x: 0, y: 0 },
+            rules: type.rules ? [...type.rules] : [],
+            physics: { ...type.physics },
+            graphics: { ...type.graphics },
+            ...(type.spawn ? { spawn: { ...type.spawn } } : {}), // Copy spawn property if present
+            lastSpawn: 0 // Initialize lastSpawn for runtime spawn logic
         };
 
         this.AUTInstances.push(autInstance);
