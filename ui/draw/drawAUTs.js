@@ -132,11 +132,11 @@ function drawStructure(ctx, structure, cellWidth, cellHeight, offset = { x: 0, y
     const absY = (structure.position.y || 0) + (offset.y || 0);
 
     // Optionally, draw a visual marker for the structure itself
-    ctx.save();
-    ctx.globalAlpha = 0.2;
-    drawCircle(ctx, absX * cellWidth, absY * cellHeight, structure.graphics.size * Math.min(cellWidth, cellHeight), null, structure.graphics.color || 'gray');
-    ctx.globalAlpha = 1.0;
-    ctx.restore();
+    // ctx.save();
+    // ctx.globalAlpha = 0.2;
+    // drawCircle(ctx, absX * cellWidth, absY * cellHeight, structure.graphics.size * Math.min(cellWidth, cellHeight), null, structure.graphics.color || 'gray');
+    // ctx.globalAlpha = 1.0;
+    // ctx.restore();
 
     // Recursively draw children, adding the structure's position as offset
     if (Array.isArray(structure.children)) {

@@ -41,7 +41,7 @@ export const Simulation = {
             name: 'node',
             type: 'node.aut',
             physics: {
-                mass: 10,
+                mass: 5,
                 coreSize: 6,
                 maxSpeed: 10,
             },
@@ -109,7 +109,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'node.aut',
-                frequency: 1000,
+                frequency: 3000,
             },
             rules: [],
         },
@@ -238,9 +238,12 @@ export const Simulation = {
         { type: 'absorb', massAbsorb: 0.8, sizeGrowth: 0.2, fromTo: 'red.female.aut,food.aut' },
         { type: 'absorb', massAbsorb: 0.5, sizeGrowth: 0.1, fromTo: 'blue.male.aut,ground.food.aut' },
         { type: 'absorb', massAbsorb: 0.8, sizeGrowth: 0.2, fromTo: 'red.female.aut,ground.food.aut' },
+        { type: 'kill', damage: 1, fromTo: 'node.aut,killer.aut' },
         { type: 'kill', damage: 1, fromTo: 'blue.male.aut,killer.aut' },
         { type: 'kill', damage: 1, sizeGrowth: 0.2, fromTo: 'red.female.aut,killer.aut' },
         { type: 'lockPosition', size: 1, fromTo: 'node.aut,node.aut' },
+        { type: 'lockPosition', size: 1, fromTo: 'node.aut,ground.food.aut' },
+        { type: 'lockPosition', size: 1, fromTo: 'node.aut,red.female.aut' },
     ],
 
 

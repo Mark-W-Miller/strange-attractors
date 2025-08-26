@@ -1,6 +1,30 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { Database } from '../database/database.js'; // Import Database
 
+function getStructureLeaves(structure, parentPos = { x: 0, y: 0 }) {
+    // Recursively collect all leaf AUTs with their absolute positions
+    if (!structure.children || !Array.isArray(structure.children)) return [];
+    const absPos = {
+        x: (structure.position?.x || 0) + parentPos.x,
+        y: (structure.position?.y || 0) + parentPos.y
+    };
+    let leaves = [];
+    structure.children.forEach(child => {
+        if (child.type === 'structure') {
+            leaves = leaves.concat(getStructureLeaves(child, absPos));
+        } else {
+            leaves.push({
+                aut: child,
+                position: {
+                    x: (child.position?.x || 0) + absPos.x,
+                    y: (child.position?.y || 0) + absPos.y
+                }
+            });
+        }
+    });
+    return leaves;
+}
+
 export function bondingRule(aut, AUTInstances, bondTypes) {
     const bondDefs = bondTypes[aut.type] || [];
     if (aut.bondedTo) {
@@ -15,6 +39,49 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     for (const bondDef of bondDefs) {
         const radius = aut.graphics.size;
         for (const candidate of AUTInstances.slice()) {
+            // --- Structure collision handling ---
+            if (candidate.type === 'structure') {
+                const leaves = getStructureLeaves(candidate);
+                let foundCollision = false;
+                for (const { aut: leaf, position: leafPos } of leaves) {
+                    if (leaf.type === bondDef.to && leaf !== aut) {
+                        const dx = leafPos.x - aut.position.x;
+                        const dy = leafPos.y - aut.position.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist <= radius) {
+                            // Use leaf AUT and its position for bond handling
+                            if (bondDef.type === 'absorb') {
+                                handleAbsorbBond(aut, leaf, bondDef);
+                                foundCollision = true;
+                                break;
+                            }
+                            if (
+                                !aut.bondedTo &&
+                                bondDef.type === 'attraction' &&
+                                !leaf.bondedTo &&
+                                (!aut.graphics.bondSize || aut.graphics.size >= aut.graphics.bondSize)
+                            ) {
+                                handlePairBond(aut, leaf, bondDef);
+                                foundCollision = true;
+                                break;
+                            }
+                            if (bondDef.type === 'kill') {
+                                handleKillBond(aut, leaf, bondDef);
+                                foundCollision = true;
+                                break;
+                            }
+                            if (bondDef.type === 'lockPosition') {
+                                handleLockPositionBond(aut, candidate, bondDef);
+                                foundCollision = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (foundCollision) break; // Only first found leaf is used
+                continue;
+            }
+            // --- Regular AUT collision handling ---
             if (
                 candidate.type === bondDef.to &&
                 candidate !== aut
