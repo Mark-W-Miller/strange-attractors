@@ -15,13 +15,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
         if (partner) {
             const bondDef = bondDefs.find(b => b.to === partner.type && b.type === 'attraction');
             if (bondDef) {
-                const dx = partner.position.x - aut.position.x;
-                const dy = partner.position.y - aut.position.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                const nx = dx / dist;
-                const ny = dy / dist;
-                aut.velocity.x += nx * bondDef.strength;
-                aut.velocity.y += ny * bondDef.strength;
+                handleAttractionBond(aut, partner, bondDef);
             }
         }
         // Continue to check for absorb bonds even if already bonded
@@ -61,7 +55,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                     ) {
                         aut.bondedTo = candidate.id;
                         candidate.bondedTo = aut.id;
-                        checkAndSplitAUT(aut); // <-- Add this call
+                        checkAndSplitAUT(aut);
                         D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
                         return; // Return after first pair bond
                     }
@@ -132,6 +126,16 @@ function checkAndSplitAUT(aut) {
         aut.graphics.size = splitSize;
         D_(DB.EVENTS, `Size capped: ${aut.id} (${aut.type}) size set to splitSize (${splitSize}).`);
     }
+}
+
+function handleAttractionBond(aut, partner, bondDef) {
+    const dx = partner.position.x - aut.position.x;
+    const dy = partner.position.y - aut.position.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = dx / dist;
+    const ny = dy / dist;
+    aut.velocity.x += nx * bondDef.strength;
+    aut.velocity.y += ny * bondDef.strength;
 }
 
 function handleKillBond(aut, candidate, bondDef) {

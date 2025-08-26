@@ -1,8 +1,8 @@
 export const Simulation = {
     // Grid Configuration
     gridConfig: {
-        gridWidth: 120,
-        gridHeight: 60,
+        gridWidth: 90,
+        gridHeight: 50,
         terrainScaleFactor: 2,
         positionScaleFactor: 16,
         terrainOpacity: 0.5,
@@ -38,6 +38,20 @@ export const Simulation = {
     // AUT Types
     autTypes: [
         {
+            name: 'node',
+            type: 'node.aut',
+            physics: {
+                mass: 10,
+                coreSize: 6,
+                maxSpeed: 10,
+            },
+            graphics: {
+                shape: 'hexagon',
+                color: 'grey',
+                size: 6,
+            },
+            rules: ['GravityVectorSensitivity'], // Only apply gravity
+        }, {
             name: 'basic',
             type: 'aut',
             physics: {
@@ -210,6 +224,11 @@ export const Simulation = {
         { type: 'kill', damage: 1, fromTo: 'blue.male.aut,killer.aut' },
         { type: 'kill', damage: 1, sizeGrowth: 0.2, fromTo: 'red.female.aut,killer.aut' },
     ],
+    structureTypes: [
+        { type: 'lockPosition', fromTo: 'node.aut,node.aut' },
+    ],
+
+
 
     // Terrain Types
     terrainTypes: [

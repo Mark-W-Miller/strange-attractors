@@ -73,6 +73,25 @@ export function drawAUTs(ctx, width, height) {
                 ctx.lineWidth = 2;
                 ctx.stroke();
             }
+        } else if (graphics.shape === 'hexagon') {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 3 * i;
+                const px = screenX + Math.cos(angle) * size / 2;
+                const py = screenY + Math.sin(angle) * size / 2;
+                if (i === 0) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+            if (bondedTo) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         } else {
             D_(DB.DRAW, `[drawAUTs] Unknown shape for AUT at (${x}, ${y}):`, graphics.shape);
         }
