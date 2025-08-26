@@ -74,7 +74,13 @@ startSimulatorBtn.addEventListener('click', () => {
 
 pauseSimulatorBtn.addEventListener('click', () => {
     D_(DB.EVENTS, '[ControlBar] Pause button clicked.');
-    Simulator.pause();
+    if (Simulator.isPaused) {
+        Simulator.resume();
+        pauseSimulatorBtn.textContent = 'Pause'; // Update button text
+    } else {
+        Simulator.pause();
+        pauseSimulatorBtn.textContent = 'Resume'; // Update button text
+    }
 });
 
 stopSimulatorBtn.addEventListener('click', () => {

@@ -104,4 +104,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         D_(DB.ERROR, '[App] FPS control element not found.');
     }
+
+    const clearNonSourceBtn = document.getElementById('clearNonSourceBtn');
+    if (clearNonSourceBtn) {
+        clearNonSourceBtn.addEventListener('click', () => {
+            Database.removeAllNonSourceAUTs();
+            D_(DB.EVENTS, '[UI] Cleared all non-source AUTs.');
+        });
+    }
 });

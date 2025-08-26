@@ -39,6 +39,9 @@ export const Simulator = {
             return;
         }
 
+        // Remove all non-source AUTs before starting the simulation
+        Database.removeAllNonSourceAUTs();
+
         this.isRunning = true;
         this.isPaused = false;
 
@@ -77,6 +80,16 @@ export const Simulator = {
         }
 
         D_(DB.EVENTS, '[Simulator] Simulator paused.');
+    },
+
+    resume() {
+        if (!this.isPaused) {
+            D_(DB.EVENTS, '[Simulator] Simulator is not paused. Resume skipped.');
+            return;
+        }
+        this.isPaused = false;
+        this.run();
+        D_(DB.EVENTS, '[Simulator] Simulator resumed.');
     },
 
     run() {

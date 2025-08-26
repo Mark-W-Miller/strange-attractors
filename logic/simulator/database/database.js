@@ -338,6 +338,15 @@ export const Database = {
         this.AUTInstances = this.AUTInstances.filter(a => a.id !== autId);
         D_(DB.EVENTS, `[Database] Removed AUT instance: ${aut.id} (${aut.type})`);
     },
+
+    /**
+     * Removes all AUT instances that are not sources (i.e., do not have a spawn property).
+     */
+    removeAllNonSourceAUTs() {
+        const toDelete = this.AUTInstances.filter(aut => !aut.spawn);
+        toDelete.forEach(aut => this.removeAUTInstanceById(aut.id));
+        D_(DB.DEBUG, `[Database] Removed ${toDelete.length} non-source AUT(s).`);
+    },
 };
 
 /**
