@@ -48,7 +48,7 @@ export const Simulation = {
             graphics: {
                 shape: 'hexagon',
                 color: 'grey',
-                size: 6,
+                size: 20,
             },
             rules: ['GravityVectorSensitivity'], // Only apply gravity
         }, {
@@ -95,6 +95,23 @@ export const Simulation = {
                 size: 8,
             },
             rules: ['TerrainSensitivity', 'GravityVectorSensitivity'],
+        },
+        {
+            name: 'Node Source',
+            type: 'node.source.aut',
+            physics: {
+                maxSpeed: 0,
+            },
+            graphics: {
+                shape: 'hexagon',
+                color: 'grey',
+                size: 20,
+            },
+            spawn: {
+                autType: 'node.aut',
+                frequency: 1000,
+            },
+            rules: [],
         },
         {
             name: 'Food Source',
@@ -223,9 +240,7 @@ export const Simulation = {
         { type: 'absorb', massAbsorb: 0.8, sizeGrowth: 0.2, fromTo: 'red.female.aut,ground.food.aut' },
         { type: 'kill', damage: 1, fromTo: 'blue.male.aut,killer.aut' },
         { type: 'kill', damage: 1, sizeGrowth: 0.2, fromTo: 'red.female.aut,killer.aut' },
-    ],
-    structureTypes: [
-        { type: 'lockPosition', fromTo: 'node.aut,node.aut' },
+        { type: 'lockPosition', size: 1, fromTo: 'node.aut,node.aut' },
     ],
 
 
