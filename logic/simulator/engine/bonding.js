@@ -40,13 +40,24 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                 if (dist <= radius) {
                     if (bondDef.type === 'absorb') {
                         aut.physics.mass += bondDef.massAbsorb * (candidate.physics?.mass || 1);
-                        aut.graphics.size += bondDef.sizeGrowth * (candidate.graphics?.size || 1);
-                        Database.removeAUTInstanceById(candidate.id); // Use Database function instead of direct splice
+
+                        // Respect maxSize property if present
+                        const newSize = aut.graphics.size + bondDef.sizeGrowth * (candidate.graphics?.size || 1);
+                        aut.graphics.size = aut.graphics.maxSize
+                            ? Math.min(newSize, aut.graphics.maxSize)
+                            : newSize;
+
+                        Database.removeAUTInstanceById(candidate.id);
                         D_(DB.EVENTS, `Absorb: ${aut.id} (${aut.type}) absorbed ${candidate.id} (${candidate.type})`);
-                        checkAndSplitAUT(aut); // <-- Add this call
+                        checkAndSplitAUT(aut);
                         continue;
                     }
-                    if (!aut.bondedTo && bondDef.type === 'attraction' && !candidate.bondedTo) {
+                    if (
+                        !aut.bondedTo &&
+                        bondDef.type === 'attraction' &&
+                        !candidate.bondedTo &&
+                        (!aut.graphics.bondSize || aut.graphics.size >= aut.graphics.bondSize)
+                    ) {
                         aut.bondedTo = candidate.id;
                         candidate.bondedTo = aut.id;
                         checkAndSplitAUT(aut); // <-- Add this call

@@ -53,6 +53,21 @@ export const Simulation = {
             rules: ['GravityVectorSensitivity'], // Only apply gravity
         },
         {
+            name: 'Ground Food',
+            type: 'ground.food.aut',
+            physics: {
+                mass: 1,
+                coreSize: 4,
+                maxSpeed: 10,
+            },
+            graphics: {
+                shape: 'circle',
+                color: 'orange',
+                size: 8,
+            },
+            rules: [],
+        },
+        {
             name: 'Little Blue Male',
             type: 'blue.male.aut',
             physics: {
@@ -63,7 +78,9 @@ export const Simulation = {
                 shape: 'triangle',
                 color: 'blue',
                 size: 12,
-            },
+                maxSize: 48,
+                bondSize: 32,
+          },
             rules: ['GravityVectorSensitivity'], 
         },
         {
@@ -77,6 +94,7 @@ export const Simulation = {
                 shape: 'circle',
                 color: 'red',
                 size: 16,
+                bondSize: 32,
                 splitSize: 64,
             },
             rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], 
@@ -88,6 +106,8 @@ export const Simulation = {
        { type: 'attraction', strength: -1, fromTo: 'red.female.aut,blue.male.aut' },
        { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,aut' },
        { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,aut' },
+       { type: 'absorb', massAbsorb: 0.5, sizeGrowth:0.1,fromTo: 'blue.male.aut,ground.food.aut' },
+       { type: 'absorb', massAbsorb: 0.8, sizeGrowth:0.2,fromTo: 'red.female.aut,ground.food.aut' },
     ],
 
     // Terrain Types
