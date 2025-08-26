@@ -49,6 +49,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                     if (!aut.bondedTo && bondDef.type === 'attraction' && !candidate.bondedTo) {
                         aut.bondedTo = candidate.id;
                         candidate.bondedTo = aut.id;
+                        checkAndSplitAUT(aut); // <-- Add this call
                         D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
                         return; // Return after first pair bond
                     }
@@ -66,33 +67,38 @@ function checkAndSplitAUT(aut) {
     const splitSize = aut.graphics.splitSize;
     if (!splitSize || aut.graphics.size < splitSize) return;
 
-    // Save original size and mass
-    const originalSize = splitSize / 2;
-    const originalMass = aut.physics.mass / 2;
-
-    // Remove pair bond on original and its partner
     if (aut.bondedTo) {
+        // Only split if pair bonded
+        // Save original size and mass
+        const originalSize = splitSize / 2;
+        const originalMass = aut.physics.mass / 2;
+
+        // Remove pair bond on original and its partner
         const partner = Database.AUTInstances.find(a => a.id === aut.bondedTo);
         if (partner) partner.bondedTo = null;
         aut.bondedTo = null;
+
+        // Reset original AUT's size and mass
+        aut.graphics.size = originalSize;
+        aut.physics.mass = originalMass;
+
+        // Create new AUT instance (clone)
+        const newAUT = {
+            ...aut,
+            id: `${aut.type}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+            position: {
+                x: aut.position.x + originalSize,
+                y: aut.position.y + originalSize
+            },
+            velocity: { x: -aut.velocity.x, y: -aut.velocity.y },
+            bondedTo: null
+        };
+        Database.AUTInstances.push(newAUT);
+
+        D_(DB.EVENTS, `Split: ${aut.id} (${aut.type}) split into two AUTs.`);
+    } else {
+        // Not pair bonded: just set size to splitSize
+        aut.graphics.size = splitSize;
+        D_(DB.EVENTS, `Size capped: ${aut.id} (${aut.type}) size set to splitSize (${splitSize}).`);
     }
-
-    // Reset original AUT's size and mass
-    aut.graphics.size = originalSize;
-    aut.physics.mass = originalMass;
-
-    // Create new AUT instance (clone)
-    const newAUT = {
-        ...aut,
-        id: `${aut.type}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
-        position: {
-            x: aut.position.x + originalSize,
-            y: aut.position.y + originalSize
-        },
-        velocity: { x: -aut.velocity.x, y: -aut.velocity.y },
-        bondedTo: null
-    };
-    Database.AUTInstances.push(newAUT);
-
-    D_(DB.EVENTS, `Split: ${aut.id} (${aut.type}) split into two AUTs.`);
 }
