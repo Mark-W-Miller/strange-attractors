@@ -117,6 +117,13 @@ function populateAUTTypes() {
         return isValid;
     });
 
+    // Sort so sources (with spawn property) are at the top
+    validAUTTypes.sort(([, a], [, b]) => {
+        const aIsSource = !!a.spawn;
+        const bIsSource = !!b.spawn;
+        return bIsSource - aIsSource; // sources (true) come before non-sources (false)
+    });
+
     validAUTTypes.forEach(([name, typeData], index) => {
         const option = document.createElement('option');
         option.value = name;

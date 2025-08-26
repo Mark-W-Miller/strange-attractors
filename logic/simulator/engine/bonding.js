@@ -1,15 +1,8 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { Database } from '../database/database.js'; // Import Database
 
-/**
- * Evaluates bonding for a single AUT.
- * If already bonded, adjusts velocity toward partner.
- * If not bonded, looks for a nearby unbonded partner of required type and bonds them.
- * If bond type is 'absorb', absorbs the candidate: increases mass and size, removes candidate.
- */
 export function bondingRule(aut, AUTInstances, bondTypes) {
     const bondDefs = bondTypes[aut.type] || [];
-    // If already bonded, adjust velocity toward partner
     if (aut.bondedTo) {
         const partner = AUTInstances.find(a => a.id === aut.bondedTo);
         if (partner) {
@@ -18,12 +11,10 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                 handleAttractionBond(aut, partner, bondDef);
             }
         }
-        // Continue to check for absorb bonds even if already bonded
     }
-    // Check for absorb bonds and handle absorption
     for (const bondDef of bondDefs) {
         const radius = aut.graphics.size;
-        for (const candidate of AUTInstances.slice()) { // Use slice to avoid mutation issues
+        for (const candidate of AUTInstances.slice()) {
             if (
                 candidate.type === bondDef.to &&
                 candidate !== aut
@@ -33,31 +24,17 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist <= radius) {
                     if (bondDef.type === 'absorb') {
-                        aut.physics.mass += bondDef.massAbsorb * (candidate.physics?.mass || 1);
-
-                        // Respect maxSize property if present
-                        const newSize = aut.graphics.size + bondDef.sizeGrowth * (candidate.graphics?.size || 1);
-                        aut.graphics.size = aut.graphics.maxSize
-                            ? Math.min(newSize, aut.graphics.maxSize)
-                            : newSize;
-
-                        Database.removeAUTInstanceById(candidate.id);
-                        D_(DB.EVENTS, `Absorb: ${aut.id} (${aut.type}) absorbed ${candidate.id} (${candidate.type})`);
-                        checkAndSplitAUT(aut);
+                        handleAbsorbBond(aut, candidate, bondDef);
                         continue;
                     }
-                    
                     if (
                         !aut.bondedTo &&
                         bondDef.type === 'attraction' &&
                         !candidate.bondedTo &&
                         (!aut.graphics.bondSize || aut.graphics.size >= aut.graphics.bondSize)
                     ) {
-                        aut.bondedTo = candidate.id;
-                        candidate.bondedTo = aut.id;
-                        checkAndSplitAUT(aut);
-                        D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
-                        return; // Return after first pair bond
+                        handlePairBond(aut, candidate, bondDef);
+                        return;
                     }
                     if (bondDef.type === 'kill') {
                         handleKillBond(aut, candidate, bondDef);
@@ -69,34 +46,66 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     }
 }
 
+// --- Bond Type Handlers ---
+
+function handleAttractionBond(aut, partner, bondDef) {
+    const dx = partner.position.x - aut.position.x;
+    const dy = partner.position.y - aut.position.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const nx = dx / dist;
+    const ny = dy / dist;
+    aut.velocity.x += nx * bondDef.strength;
+    aut.velocity.y += ny * bondDef.strength;
+}
+
+function handleAbsorbBond(aut, candidate, bondDef) {
+    aut.physics.mass += bondDef.massAbsorb * (candidate.physics?.mass || 1);
+    const newSize = aut.graphics.size + bondDef.sizeGrowth * (candidate.graphics?.size || 1);
+    aut.graphics.size = aut.graphics.maxSize
+        ? Math.min(newSize, aut.graphics.maxSize)
+        : newSize;
+    Database.removeAUTInstanceById(candidate.id);
+    D_(DB.EVENTS, `Absorb: ${aut.id} (${aut.type}) absorbed ${candidate.id} (${candidate.type})`);
+    checkAndSplitAUT(aut);
+}
+
+function handlePairBond(aut, candidate, bondDef) {
+    aut.bondedTo = candidate.id;
+    candidate.bondedTo = aut.id;
+    checkAndSplitAUT(aut);
+    D_(DB.EVENTS, `Bonded: ${aut.id} (${aut.type}) <-> ${candidate.id} (${candidate.type})`);
+}
+
+function handleKillBond(aut, candidate, bondDef) {
+    candidate.graphics.size -= bondDef.damage;
+    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) damaged ${candidate.id} (${candidate.type}) by ${bondDef.damage}. New size: ${candidate.graphics.size}`);
+    if (candidate.graphics.size <= 0) {
+        Database.removeAUTInstanceById(candidate.id);
+        D_(DB.EVENTS, `Kill: ${candidate.id} (${candidate.type}) was destroyed.`);
+    }
+    Database.removeAUTInstanceById(aut.id);
+    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) self-destructed after attack.`);
+}
+
 /**
  * Checks if the AUT has reached splitSize and splits it in two if needed.
- * Removes pair bonds on the original, resets its size and mass, and creates a new AUT nearby.
+ * Removes pair bonds on the original, resets its size and mass, and creates new AUTs as specified by splitTo.
  */
 function checkAndSplitAUT(aut) {
     const splitSize = aut.graphics.splitSize;
     if (!splitSize || aut.graphics.size < splitSize) return;
 
-    // Use splitTo property if present, otherwise default to splitting into two of the same type
     const splitToList = aut.graphics.splitTo || [aut.type, aut.type];
 
     if (aut.bondedTo) {
-        // Only split if pair bonded
         const originalSize = splitSize / splitToList.length;
         const originalMass = aut.physics.mass / splitToList.length;
-
-        // Remove pair bond on original and its partner
         const partner = Database.AUTInstances.find(a => a.id === aut.bondedTo);
         if (partner) partner.bondedTo = null;
         aut.bondedTo = null;
-
-        // Reset original AUT's size and mass
         aut.graphics.size = originalSize;
         aut.physics.mass = originalMass;
-
-        // Create new AUT instances for each type in splitToList
         splitToList.forEach((splitType, idx) => {
-            // Skip the first one, which is the original AUT
             if (idx === 0) return;
             const typeDef = Database.AUTTypes[splitType];
             if (!typeDef) {
@@ -119,37 +128,9 @@ function checkAndSplitAUT(aut) {
             Database.AUTInstances.push(newAUT);
             D_(DB.EVENTS, `Split: Created AUT ${newAUT.id} (${splitType}) at (${newAUT.position.x}, ${newAUT.position.y}).`);
         });
-
         D_(DB.EVENTS, `Split: ${aut.id} (${aut.type}) split into ${splitToList.length} AUTs.`);
     } else {
-        // Not pair bonded: just set size to splitSize
         aut.graphics.size = splitSize;
         D_(DB.EVENTS, `Size capped: ${aut.id} (${aut.type}) size set to splitSize (${splitSize}).`);
     }
-}
-
-function handleAttractionBond(aut, partner, bondDef) {
-    const dx = partner.position.x - aut.position.x;
-    const dy = partner.position.y - aut.position.y;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    const nx = dx / dist;
-    const ny = dy / dist;
-    aut.velocity.x += nx * bondDef.strength;
-    aut.velocity.y += ny * bondDef.strength;
-}
-
-function handleKillBond(aut, candidate, bondDef) {
-    // Apply damage to candidate
-    candidate.graphics.size -= bondDef.damage;
-    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) damaged ${candidate.id} (${candidate.type}) by ${bondDef.damage}. New size: ${candidate.graphics.size}`);
-
-    // If candidate's size is 0 or less, remove it
-    if (candidate.graphics.size <= 0) {
-        Database.removeAUTInstanceById(candidate.id);
-        D_(DB.EVENTS, `Kill: ${candidate.id} (${candidate.type}) was destroyed.`);
-    }
-
-    // The kill AUT always dies
-    Database.removeAUTInstanceById(aut.id);
-    D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) self-destructed after attack.`);
 }
