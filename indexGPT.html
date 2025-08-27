@@ -1,0 +1,186 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>proto-toy (one file)</title>
+<style>
+  html,body{margin:0;height:100%;background:#111;color:#ddd;font:14px system-ui}
+  #ui{position:fixed;top:8px;left:8px;background:#000a;padding:8px 10px;border-radius:8px}
+  label{display:block;margin:6px 0 2px}
+  input[type=range]{width:180px}
+  button{margin:4px 2px}
+  canvas{display:block}
+</style>
+
+<div id="ui">
+  <label>Gravity <input id="g" type="range" min="0" max="50000" value="7000"></label>
+  <label>Stiffness <input id="k" type="range" min="50" max="4000" value="900"></label>
+  <label>Damping <input id="d" type="range" min="0" max="0.2" step="0.005" value="0.02"></label>
+  <label>Torsion (wobble) <input id="tor" type="range" min="0" max="2" step="0.02" value="0.6"></label>
+  <button id="addCluster">+ cluster</button>
+  <button id="addChain">+ chain</button>
+  <button id="scramble">impulse</button>
+  <button id="clear">clear</button>
+  <button id="pause">pause</button>
+</div>
+<canvas id="c"></canvas>
+
+<script>
+const C = document.getElementById('c'), X = C.getContext('2d');
+let W=innerWidth, H=innerHeight; C.width=W; C.height=H;
+addEventListener('resize', ()=>{ W=innerWidth; H=innerHeight; C.width=W; C.height=H; });
+
+const ui = {
+  g: document.getElementById('g'),
+  k: document.getElementById('k'),
+  d: document.getElementById('d'),
+  tor: document.getElementById('tor')
+};
+
+// --------- minimal physics (Verlet + PBD) ----------
+class P{
+  constructor(x,y){ this.x=x; this.y=y; this.px=x; this.py=y; this.ax=0; this.ay=0; this.m=1; }
+}
+class Bond{
+  constructor(a,b,len,k){ this.a=a; this.b=b; this.len=len; this.k=k; }
+}
+class Angle{
+  // torsion on triple (a-b-c): tries to keep angle at restTheta
+  constructor(a,b,c,restTheta,str){ this.a=a; this.b=b; this.c=c; this.rest=restTheta; this.str=str; }
+}
+
+const pts=[], bonds=[], angles=[];
+function addParticle(x,y){ const p=new P(x,y); pts.push(p); return p; }
+function addBond(a,b,k=+ui.k.value){ bonds.push(new Bond(a,b,dist(a,b),k)); }
+function addAngle(a,b,c,str=+ui.tor.value){
+  const th = angleABC(a,b,c); angles.push(new Angle(a,b,c,th,str));
+}
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function angleABC(a,b,c){
+  const uX=a.x-b.x, uY=a.y-b.y, vX=c.x-b.x, vY=c.y-b.y;
+  const nu=Math.hypot(uX,uY)||1, nv=Math.hypot(vX,vY)||1;
+  const dot=(uX*vX+uY*vY)/(nu*nv);
+  return Math.acos(Math.max(-1,Math.min(1,dot)));
+}
+
+// "rigid-ish" quad with diagonals + two torsion constraints to make it wobble
+function addCluster(cx,cy,s=28){
+  const p0=addParticle(cx-s,cy-s),
+        p1=addParticle(cx+s,cy-s),
+        p2=addParticle(cx+s,cy+s),
+        p3=addParticle(cx-s,cy+s);
+  const stiff=+ui.k.value*1.6, edge=+ui.k.value*1.0;
+  [[p0,p1,edge],[p1,p2,edge],[p2,p3,edge],[p3,p0,edge],[p0,p2,stiff],[p1,p3,stiff]]
+    .forEach(([a,b,k])=>addBond(a,b,k));
+  addAngle(p0,p1,p2); addAngle(p1,p2,p3); // light torsion so it "breathes"
+}
+function addChain(cx,cy,n=10, spacing=22){
+  let prev=null;
+  for(let i=0;i<n;i++){
+    const p=addParticle(cx+i*spacing, cy + (i%2?6:-6));
+    if(prev) addBond(prev,p,+ui.k.value*0.7);
+    prev=p;
+  }
+}
+
+document.getElementById('addCluster').onclick = ()=> addCluster(120+Math.random()*(W-240), 100+Math.random()*120);
+document.getElementById('addChain').onclick   = ()=> addChain(80, 200+Math.random()*(H-260));
+document.getElementById('scramble').onclick   = ()=>{
+  for(const p of pts){ const ang=Math.random()*Math.PI*2, v=80+Math.random()*120;
+    const vx=Math.cos(ang)*v, vy=Math.sin(ang)*v;
+    // set previous position to create velocity
+    p.px = p.x - vx*DT; p.py = p.y - vy*DT;
+  }
+};
+document.getElementById('clear').onclick     = ()=>{ pts.length=0; bonds.length=0; angles.length=0; };
+let paused=false; document.getElementById('pause').onclick = ()=> paused=!paused;
+
+// seed a couple
+addCluster(W*0.6, 140);
+addChain(W*0.18, 220);
+
+// integration params (fixed timestep so motion is visible)
+const DT = 1/60;    // seconds-per-step (display)
+const SUB = 2;      // physics substeps per frame
+
+function integrate(dt){
+  const g = +ui.g.value;      // pixels/s^2
+  const damp = +ui.d.value;   // global velocity damping
+  for(const p of pts){
+    p.ax = 0; p.ay = g;
+    const vx = (p.x - p.px)*(1 - damp);
+    const vy = (p.y - p.py)*(1 - damp);
+    const nx = p.x + vx + p.ax*dt*dt;
+    const ny = p.y + vy + p.ay*dt*dt;
+    p.px = p.x; p.py = p.y; p.x = nx; p.y = ny;
+
+    // walls/floor (bounce)
+    if(p.y > H-12){ p.y = H-12; p.py = p.y + (p.y - p.py)*-0.4; }
+    if(p.x < 12){ p.x = 12; p.px = p.x + (p.x - p.px)*-0.4; }
+    if(p.x > W-12){ p.x = W-12; p.px = p.x + (p.x - p.px)*-0.4; }
+  }
+}
+
+function satisfy(iter=6){
+  const baseK = +ui.k.value;
+  // distance constraints
+  for(let it=0; it<iter; it++){
+    for(const b of bonds){
+      const a=b.a, c=b.b, k=(b.k||baseK);
+      let dx=c.x-a.x, dy=c.y-a.y;
+      const L=Math.hypot(dx,dy)||1e-6, diff=(L-b.len);
+      const corr= (diff/L)*0.5 * (k/(k+1));
+      dx*=corr; dy*=corr;
+      a.x += dx; a.y += dy;
+      c.x -= dx; c.y -= dy;
+    }
+    // simple angle (torsion) constraints (tiny positional nudges on a & c)
+    const s = +ui.tor.value;
+    if(s>0){
+      for(const A of angles){
+        const a=A.a, b=A.b, c=A.c;
+        // current angle
+        const th = angleABC(a,b,c);
+        const dth = th - A.rest; // positive -> open
+        // compute small perpendicular pushes on a and c
+        let baX=a.x-b.x, baY=a.y-b.y, bcX=c.x-b.x, bcY=c.y-b.y;
+        const nBA = Math.hypot(baX,baY)||1e-6, nBC=Math.hypot(bcX,bcY)||1e-6;
+        baX/=nBA; baY/=nBA; bcX/=nBC; bcY/=nBC;
+        // perpendiculars
+        const pA = {x: -baY, y: baX}, pC = {x: bcY, y: -bcX};
+        const push = (dth)*0.02*s; // small nudge factor
+        a.x += pA.x*push; a.y += pA.y*push;
+        c.x += pC.x*push; c.y += pC.y*push;
+        // counter on b to keep center roughly in place
+        b.x -= (pA.x+pC.x)*push*0.5; b.y -= (pA.y+pC.y)*push*0.5;
+      }
+    }
+  }
+}
+
+// drawing
+function draw(){
+  X.clearRect(0,0,W,H);
+  // bonds with strain color
+  X.lineWidth=2;
+  for(const b of bonds){
+    const L=Math.hypot(b.b.x-b.a.x, b.b.y-b.a.y);
+    const strain = Math.min(1, Math.abs(L-b.len)/(b.len*0.4));
+    X.strokeStyle = `hsl(${(1-strain)*120} 80% 60%)`;
+    X.beginPath(); X.moveTo(b.a.x,b.a.y); X.lineTo(b.b.x,b.b.y); X.stroke();
+  }
+  // particles
+  for(const p of pts){ X.fillStyle='#ddd'; X.beginPath(); X.arc(p.x,p.y,4,0,6.283); X.fill(); }
+  // floor line
+  X.strokeStyle='#333'; X.beginPath(); X.moveTo(0,H-10.5); X.lineTo(W,H-10.5); X.stroke();
+}
+
+let last=performance.now();
+function tick(now){
+  requestAnimationFrame(tick);
+  if(!paused){
+    // fixed-step integration so effects are visible
+    for(let s=0;s<SUB;s++){ integrate(DT/SUB); satisfy(5); }
+  }
+  draw();
+}
+tick(performance.now());
+</script>
