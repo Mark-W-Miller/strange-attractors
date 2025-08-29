@@ -17,6 +17,7 @@ export const Database = {
     Simulation: null, // This will hold the loaded simulation
     bondTypes: [],
     bondTypeMap: {},
+    simTime: 0, // in microseconds
 
     async initialize(Simulation) {
         try {
@@ -157,7 +158,8 @@ export const Database = {
             ...(type.spawn ? { spawn: { ...type.spawn } } : {}), // Copy spawn property if present
             lastSpawn: 0 // Initialize lastSpawn for runtime spawn logic
         };
-
+        
+        autInstance.birthMicroTime = Database.simTime;
         this.AUTInstances.push(autInstance);
         D_(DB.UI_DEEP, `[Database] Added AUT instance at position (${x}, ${y}):`, autInstance);
     },

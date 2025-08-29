@@ -8,7 +8,9 @@ export const Simulator = {
     isRunning: false,
     isPaused: false,
     intervalId: null,
-    listeners: [], // Listeners for simulation updates
+    listeners: [],
+    lastTick: 0,
+    simTick: 0,
 
     async initialize(Database) {
         try {
@@ -39,6 +41,7 @@ export const Simulator = {
             return;
         }
 
+        this.lastTick = performance.now();
         // Remove all non-source AUTs before starting the simulation
         Database.removeAllNonSourceAUTs();
 
@@ -93,39 +96,42 @@ export const Simulator = {
     },
 
     run() {
-        const { FPS } = Database.gridConfig; // Get FPS from the gridConfig
-        const interval = 1000 / FPS; // Calculate interval in milliseconds
+        const FPS = Database.gridConfig.FPS || 60; // Simulation ticks per second
+        const interval = 1000 / FPS; // ms per simulation tick
+
+        if (this.intervalId) clearInterval(this.intervalId);
 
         this.intervalId = setInterval(() => {
+            this.simTick++;
             this.updateSimulation();
-            redrawCanvas(); // Call redrawCanvas directly
-        }, interval); // Use the calculated interval
+            redrawCanvas();
+        }, interval);
     },
 
     handleSpawns(AUTInstances, Database) {
-        const now = Date.now();
+        const simTick = this.simTick;
+        const FPS = Database.gridConfig.FPS || 60;
         AUTInstances.forEach(aut => {
-            if (aut.spawn && aut.spawn.frequency > 0 && aut.spawn.autType) {
-                // Initialize lastSpawn if not present
-                if (!aut.lastSpawn) aut.lastSpawn = 0;
-                // Check if enough time has passed
-                if (now - aut.lastSpawn >= aut.spawn.frequency) {
-                    // Find the AUT type definition
+            if (aut.spawn && aut.spawn.frequencySeconds > 0 && aut.spawn.autType) {
+                // Convert seconds to ticks
+                const frequencyTicks = Math.round(aut.spawn.frequencySeconds * FPS);
+                if (!aut.lastSpawnTick) aut.lastSpawnTick = 0;
+                if (simTick - aut.lastSpawnTick >= frequencyTicks) {
                     const spawnTypeDef = Object.values(Database.AUTTypes).find(t => t.type === aut.spawn.autType);
                     if (spawnTypeDef) {
-                        // Create a new AUT instance at the spawner's location
                         const newAUT = {
-                            id: `${spawnTypeDef.type}-${now}-${Math.floor(Math.random() * 1e6)}`,
+                            id: `${spawnTypeDef.type}-${simTick}-${Math.floor(Math.random() * 1e6)}`,
                             type: spawnTypeDef.type,
                             position: { ...aut.position },
                             velocity: { x: 0, y: 0 },
                             rules: spawnTypeDef.rules ? [...spawnTypeDef.rules] : [],
                             physics: { ...spawnTypeDef.physics },
                             graphics: { ...spawnTypeDef.graphics },
-                            lastSpawn: 0 // New AUTs start with no spawn history
+                            lastSpawnTick: 0,
+                            birthTick: simTick
                         };
                         Database.AUTInstances.push(newAUT);
-                        aut.lastSpawn = now;
+                        aut.lastSpawnTick = simTick;
                         D_(DB.EVENTS, `[Simulator] Spawned ${spawnTypeDef.type} at (${aut.position.x}, ${aut.position.y})`);
                     }
                 }
@@ -134,14 +140,14 @@ export const Simulator = {
     },
 
     handleDeath(AUTInstances, Database) {
-        const now = Date.now();
-        // Remove AUTs whose lifetime has expired
+        const simTick = this.simTick;
+        const FPS = Database.gridConfig.FPS || 60;
         AUTInstances.slice().forEach(aut => {
-            if (aut.physics && aut.physics.lifeTime) {
-                // Track birth time
-                if (!aut.birthTime) aut.birthTime = now;
-                // If lifetime exceeded, remove AUT
-                if (now - aut.birthTime >= aut.physics.lifeTime) {
+            if (aut.physics && aut.physics.lifeTimeSeconds) {
+                // Convert seconds to ticks
+                const lifeTimeTicks = Math.round(aut.physics.lifeTimeSeconds * FPS);
+                if (!aut.birthTick) aut.birthTick = simTick;
+                if (simTick - aut.birthTick >= lifeTimeTicks) {
                     Database.removeAUTInstanceById(aut.id);
                     D_(DB.EVENTS, `[Simulator] AUT ${aut.id} (${aut.type}) died of old age.`);
                 }
@@ -152,19 +158,12 @@ export const Simulator = {
     updateSimulation() {
         const { AUTInstances, gridConfig } = Database;
         const { positionScaleFactor, gridWidth, gridHeight } = gridConfig;
-
         const arenaWidth = gridWidth * positionScaleFactor;
         const arenaHeight = gridHeight * positionScaleFactor;
 
-        // Handle deaths before anything else
         this.handleDeath(AUTInstances, Database);
-
-        // Handle spawns before updating AUT positions
         this.handleSpawns(AUTInstances, Database);
-
-        // Use the new function from rulesEngine to handle AUT updates and bonding
         updateAUTPositions(AUTInstances, DefaultRules, Database, arenaWidth, arenaHeight);
-
         this.notifyListeners();
     },
 
@@ -211,3 +210,4 @@ export const Simulator = {
         this.listeners.forEach(listener => listener(Database));
     },
 };
+

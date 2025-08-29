@@ -4,7 +4,6 @@ export function saveSimulationDebugInfo(simulation, key = 'simulationDebugInfo')
         const debugInfo = {
             gridConfig: simulation.gridConfig, // Store grid configuration
             autPositions: simulation.autPositions, // Store AUT initial positions
-            rules: simulation.rules.map(rule => rule.name), // Store rule names only
         };
 
         const serializedDebugInfo = JSON.stringify(debugInfo);

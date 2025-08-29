@@ -70,7 +70,7 @@ export const Simulation = {
             name: 'Killer',
             type: 'killer.aut',
             physics: {
-                lifeTime: 300,
+                lifeTimeMicro: 10,
             },
 
             graphics: {
@@ -87,7 +87,7 @@ export const Simulation = {
                 mass: 1,
                 coreSize: 4,
                 maxSpeed: 10,
-                lifeTime: 10000,
+                lifeTimeMicro: 10000,
             },
             graphics: {
                 shape: 'circle',
@@ -109,7 +109,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'node.aut',
-                frequency: 3000,
+                frequencySeconds: 3,
             },
             rules: [],
         },
@@ -126,7 +126,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'food.aut',
-                frequency: 1000,
+                frequencySeconds: 1,
             },
             rules: [],
         },
@@ -143,7 +143,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'killer.aut',
-                frequency: 1000,
+                frequencySeconds: 1,
             },
             rules: [],
         },
@@ -208,7 +208,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'red.female.aut',
-                frequency: 1000,
+                frequencySeconds: 1,
             },
             rules: [],
         },
@@ -225,7 +225,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'blue.male.aut',
-                frequency: 1000,
+                frequencySeconds: 1,
             },
             rules: [],
         },
@@ -241,9 +241,6 @@ export const Simulation = {
         { type: 'kill', damage: 1, fromTo: 'node.aut,killer.aut' },
         { type: 'kill', damage: 1, fromTo: 'blue.male.aut,killer.aut' },
         { type: 'kill', damage: 1, sizeGrowth: 0.2, fromTo: 'red.female.aut,killer.aut' },
-        { type: 'lockPosition', size: 1, fromTo: 'node.aut,node.aut' },
-        { type: 'lockPosition', size: 1, fromTo: 'node.aut,ground.food.aut' },
-        { type: 'lockPosition', size: 1, fromTo: 'node.aut,red.female.aut' },
     ],
 
 

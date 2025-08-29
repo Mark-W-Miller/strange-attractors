@@ -1,30 +1,6 @@
 import { D_, DB } from '../../../debug/DB.js';
 import { Database } from '../database/database.js'; // Import Database
 
-function getStructureLeaves(structure, parentPos = { x: 0, y: 0 }) {
-    // Recursively collect all leaf AUTs with their absolute positions
-    if (!structure.children || !Array.isArray(structure.children)) return [];
-    const absPos = {
-        x: (structure.position?.x || 0) + parentPos.x,
-        y: (structure.position?.y || 0) + parentPos.y
-    };
-    let leaves = [];
-    structure.children.forEach(child => {
-        if (child.type === 'structure') {
-            leaves = leaves.concat(getStructureLeaves(child, absPos));
-        } else {
-            leaves.push({
-                aut: child,
-                position: {
-                    x: (child.position?.x || 0) + absPos.x,
-                    y: (child.position?.y || 0) + absPos.y
-                }
-            });
-        }
-    });
-    return leaves;
-}
-
 export function bondingRule(aut, AUTInstances, bondTypes) {
     const bondDefs = bondTypes[aut.type] || [];
     if (aut.bondedTo) {
@@ -39,48 +15,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     for (const bondDef of bondDefs) {
         const radius = aut.graphics.size;
         for (const candidate of AUTInstances.slice()) {
-            // --- Structure collision handling ---
-            if (candidate.type === 'structure') {
-                const leaves = getStructureLeaves(candidate);
-                let foundCollision = false;
-                for (const { aut: leaf, position: leafPos } of leaves) {
-                    if (leaf.type === bondDef.to && leaf !== aut) {
-                        const dx = leafPos.x - aut.position.x;
-                        const dy = leafPos.y - aut.position.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist <= radius) {
-                            // Use leaf AUT and its position for bond handling
-                            if (bondDef.type === 'absorb') {
-                                handleAbsorbBond(aut, leaf, bondDef);
-                                foundCollision = true;
-                                break;
-                            }
-                            if (
-                                !aut.bondedTo &&
-                                bondDef.type === 'attraction' &&
-                                !leaf.bondedTo &&
-                                (!aut.graphics.bondSize || aut.graphics.size >= aut.graphics.bondSize)
-                            ) {
-                                handlePairBond(aut, leaf, bondDef);
-                                foundCollision = true;
-                                break;
-                            }
-                            if (bondDef.type === 'kill') {
-                                handleKillBond(aut, leaf, bondDef);
-                                foundCollision = true;
-                                break;
-                            }
-                            if (bondDef.type === 'lockPosition') {
-                                handleLockPositionBond(aut, candidate, bondDef);
-                                foundCollision = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (foundCollision) break; // Only first found leaf is used
-                continue;
-            }
+           
             // --- Regular AUT collision handling ---
             if (
                 candidate.type === bondDef.to &&
@@ -105,10 +40,6 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
                     }
                     if (bondDef.type === 'kill') {
                         handleKillBond(aut, candidate, bondDef);
-                        return;
-                    }
-                    if (bondDef.type === 'lockPosition') {
-                        handleLockPositionBond(aut, candidate, bondDef);
                         return;
                     }
                 }
@@ -156,90 +87,6 @@ function handleKillBond(aut, candidate, bondDef) {
     }
     Database.removeAUTInstanceById(aut.id);
     D_(DB.EVENTS, `Kill: ${aut.id} (${aut.type}) self-destructed after attack.`);
-}
-
-function handleLockPositionBond(aut, candidate, bondDef) {
-    // Calculate the midpoint between the two AUTs for the structure's position
-    const dx = candidate.position.x - aut.position.x;
-    const dy = candidate.position.y - aut.position.y;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-    // Lock them 'size' distance apart
-    const lockDistance = aut.graphics.size;
-    const angle = Math.atan2(dy, dx);
-
-    // Structure position is the midpoint
-    const structureX = (aut.position.x + candidate.position.x) / 2;
-    const structureY = (aut.position.y + candidate.position.y) / 2;
-
-    // Set child positions relative to structure
-    const autRelPos = {
-        x: -lockDistance / 2 * Math.cos(angle),
-        y: -lockDistance / 2 * Math.sin(angle)
-    };
-    const candidateRelPos = {
-        x: lockDistance / 2 * Math.cos(angle),
-        y: lockDistance / 2 * Math.sin(angle)
-    };
-
-
-    // Calculate total mass and momentum
-    const autMass = aut.physics.mass || 1;
-    const candidateMass = candidate.physics.mass || 1;
-    const totalMass = autMass + candidateMass;
-
-    const totalMomentum = {
-        x: (aut.velocity.x * autMass) + (candidate.velocity.x * candidateMass),
-        y: (aut.velocity.y * autMass) + (candidate.velocity.y * candidateMass)
-    };
-
-    const structureVelocity = {
-        x: totalMomentum.x / totalMass,
-        y: totalMomentum.y / totalMass
-    };
-    // Zero velocities for children
-    aut.velocity = { x: 0, y: 0 };
-    candidate.velocity = { x: 0, y: 0 };
-
-    // Build structure AUT (binary tree: left and right)
-    const structureAUT = {
-        id: `structure-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
-        type: 'structure',
-        position: { x: structureX, y: structureY },
-        velocity: structureVelocity,
-        physics: { mass: totalMass },
-        graphics: {
-            size: aut.graphics.size + candidate.graphics.size,
-            shape: 'structure'
-        },
-        rules: Array.from(new Set([
-            ...(Array.isArray(aut.rules) ? aut.rules : []),
-            ...(Array.isArray(candidate.rules) ? candidate.rules : [])
-        ])),
-        children: [
-            {
-                ...aut,
-                inStructure: true,
-                position: autRelPos,
-                velocity: { x: 0, y: 0 }
-            },
-            {
-                ...candidate,
-                inStructure: true,
-                position: candidateRelPos,
-                velocity: { x: 0, y: 0 }
-            }
-        ]
-    };
-
-    // Remove the original AUTs from the instance list
-    Database.removeAUTInstanceById(aut.id);
-    Database.removeAUTInstanceById(candidate.id);
-
-    // Add the new structure AUT to the instance list
-    Database.AUTInstances.push(structureAUT);
-
-    D_(DB.EVENTS, `LockPosition: Created structure AUT ${structureAUT.id} from ${aut.id} and ${candidate.id}.`);
 }
 
 /**

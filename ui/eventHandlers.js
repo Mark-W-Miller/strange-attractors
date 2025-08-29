@@ -119,4 +119,15 @@ export function setupEventHandlers({ redrawCanvas, handleResize }) {
     });
 
     gameCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    document.querySelectorAll('.layer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const selectedLayer = btn.getAttribute('data-layer');
+            // Your layer switching logic here
+            setActiveLayer(selectedLayer); // Replace with your actual function
+            // Optionally highlight the selected button
+            document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
 }
