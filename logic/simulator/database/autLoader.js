@@ -47,9 +47,9 @@ export function buildTypeMap(allTypes) {
         try {
             const resolvedType = resolveAUTType(type.type, allTypes);
             resolvedType.type = type.type; // Ensure the `type` field is preserved
-            typeMap[type.name] = resolvedType;
+            typeMap[type.type] = resolvedType; // <-- Key by type, not name
         } catch (error) {
-            console.error(`[AUT Loader] Error resolving type ${type.name}:`, error);
+            console.error(`[AUT Loader] Error resolving type ${type.type}:`, error);
         }
     });
 

@@ -117,7 +117,7 @@ export const Simulation = {
         },
         {
             name: 'Food Source',
-            type: 'source.aut',
+            type: 'food.source.aut',
             physics: {
                 maxSpeed: 0,
             },
@@ -178,7 +178,7 @@ export const Simulation = {
                 maxSize: 48,
                 bondSize: 32,
             },
-            rules: ['GravityVectorSensitivity'],
+            rules: ['TerrainSensitivity','GravityVectorSensitivity'],
         },
         {
             name: 'Big Red Female',

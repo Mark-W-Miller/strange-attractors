@@ -15,7 +15,7 @@ export function bondingRule(aut, AUTInstances, bondTypes) {
     for (const bondDef of bondDefs) {
         const radius = aut.graphics.size;
         for (const candidate of AUTInstances.slice()) {
-           
+
             // --- Regular AUT collision handling ---
             if (
                 candidate.type === bondDef.to &&
@@ -97,20 +97,31 @@ function checkAndSplitAUT(aut) {
     const splitSize = aut.graphics.splitSize;
     if (!splitSize || aut.graphics.size < splitSize) return;
 
-    const splitToList = aut.graphics.splitTo || [aut.type, aut.type];
+    const splitToRaw = aut.graphics.splitTo || [aut.type, aut.type];
+    const splitToList = Array.isArray(splitToRaw)
+        ? splitToRaw
+        : typeof splitToRaw === 'string'
+            ? splitToRaw.split(',').map(s => s.trim())
+            : [aut.type, aut.type];
 
     if (aut.bondedTo) {
-        const originalSize = splitSize / splitToList.length;
-        const originalMass = aut.physics.mass / splitToList.length;
-        const partner = Database.AUTInstances.find(a => a.id === aut.bondedTo);
-        if (partner) partner.bondedTo = null;
-        aut.bondedTo = null;
+        // Get original size and mass from typeDef
+        const typeDef = Database.AUTTypes[aut.type];
+        const originalSize = typeDef.graphics.size;
+        const originalMass = typeDef.physics.mass;
+
+        // Reset original AUT to original size and mass, keep pair bond
         aut.graphics.size = originalSize;
         aut.physics.mass = originalMass;
+
+        // Find partner and keep their bond
+        const partner = Database.AUTInstances.find(a => a.id === aut.bondedTo);
+        if (partner) partner.bondedTo = aut.id;
+
+        // Create new AUT (not bonded)
         splitToList.forEach((splitType, idx) => {
-            if (idx === 0) return;
-            const typeDef = Database.AUTTypes[splitType];
-            if (!typeDef) {
+            const typeDefNew = Database.AUTTypes[splitType];
+            if (!typeDefNew) {
                 D_(DB.EVENTS, `Split: AUT type ${splitType} not found in AUTTypes.`);
                 return;
             }
@@ -122,10 +133,10 @@ function checkAndSplitAUT(aut) {
                     y: aut.position.y + (originalSize * idx)
                 },
                 velocity: { x: -aut.velocity.x, y: -aut.velocity.y },
-                bondedTo: null,
-                rules: typeDef.rules ? [...typeDef.rules] : [],
-                physics: { ...typeDef.physics, mass: originalMass },
-                graphics: { ...typeDef.graphics, size: originalSize, splitSize: typeDef.graphics.splitSize, splitTo: typeDef.graphics.splitTo }
+                bondedTo: null, // Not bonded
+                rules: typeDefNew.rules ? [...typeDefNew.rules] : [],
+                physics: { ...typeDefNew.physics, mass: originalMass },
+                graphics: { ...typeDefNew.graphics, size: originalSize, splitSize: typeDefNew.graphics.splitSize, splitTo: typeDefNew.graphics.splitTo }
             };
             Database.AUTInstances.push(newAUT);
             D_(DB.EVENTS, `Split: Created AUT ${newAUT.id} (${splitType}) at (${newAUT.position.x}, ${newAUT.position.y}).`);
