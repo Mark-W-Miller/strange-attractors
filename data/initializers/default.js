@@ -70,7 +70,7 @@ export const Simulation = {
             name: 'Killer',
             type: 'killer.aut',
             physics: {
-                lifeTimeMicro: 10,
+                lifeTimeSeconds: 3,
             },
 
             graphics: {
@@ -87,7 +87,7 @@ export const Simulation = {
                 mass: 1,
                 coreSize: 4,
                 maxSpeed: 10,
-                lifeTimeMicro: 10000,
+                lifeTimeSeconds: 20,
             },
             graphics: {
                 shape: 'circle',
@@ -208,7 +208,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'red.female.aut',
-                frequencySeconds: 1,
+                frequencySeconds: 5,
             },
             rules: [],
         },
@@ -225,7 +225,7 @@ export const Simulation = {
             },
             spawn: {
                 autType: 'blue.male.aut',
-                frequencySeconds: 1,
+                frequencySeconds: 2,
             },
             rules: [],
         },

@@ -7,7 +7,6 @@ const startSimulatorBtn = document.getElementById('startSimulatorBtn');
 const pauseSimulatorBtn = document.getElementById('pauseSimulatorBtn');
 const stopSimulatorBtn = document.getElementById('stopSimulatorBtn');
 
-const layerSelect = document.getElementById('layerSelect');
 const terrainControls = document.getElementById('terrainControls');
 const mouseFeedback = document.getElementById('mouseFeedback');
 const mouseInfo = document.getElementById('mouseInfo');
@@ -88,17 +87,6 @@ stopSimulatorBtn.addEventListener('click', () => {
     Simulator.stop();
 });
 
-layerSelect.addEventListener('change', (e) => {
-    const mode = e.target.value;
-    terrainControls.style.display = mode === 'Terrain' ? 'block' : 'none';
-    document.getElementById('autControls').style.display = mode === 'AUT' ? 'block' : 'none';
-
-    if (mode === 'AUT') {
-        populateAUTTypes();
-    }
-
-    D_(DB.UI, `[ControlBar] Switched mode to ${mode}`);
-});
 
 // Populate AUT types dropdown
 function populateAUTTypes() {
@@ -141,20 +129,33 @@ function populateAUTTypes() {
     D_(DB.DB_INIT, '[ControlBar] AUT types dropdown populated with valid types.', validAUTTypes);
 }
 
-// Add this function to initialize the dynamic controls for the default mode
-function initializeDynamicControls() {
-    const defaultMode = document.getElementById('layerSelect').value;
+// Set active layer and update controls accordingly
+function setActiveLayer(selectedLayer) {
+    // Show/hide controls based on selected layer
+    terrainControls.style.display = selectedLayer === 'Terrain' ? 'block' : 'none';
+    document.getElementById('autControls').style.display = selectedLayer === 'AUT' ? 'block' : 'none';
 
-    // Show or hide controls based on the default mode
-    terrainControls.style.display = defaultMode === 'Terrain' ? 'block' : 'none';
-    document.getElementById('autControls').style.display = defaultMode === 'AUT' ? 'block' : 'none';
-
-    if (defaultMode === 'AUT') {
-        populateAUTTypes(); // Populate AUT types if AUT is the default mode
+    if (selectedLayer === 'AUT') {
+        populateAUTTypes();
     }
 
-    D_(DB.UI, `[ControlBar] Initialized dynamic controls for default mode: ${defaultMode}`);
+    D_(DB.UI, `[ControlBar] Switched mode to ${selectedLayer}`);
 }
 
 // Populate initializers on load
-initializeDynamicControls();
+document.querySelectorAll('.layer-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const selectedLayer = btn.getAttribute('data-layer');
+        // Your layer switching logic here
+        setActiveLayer(selectedLayer); // Replace with your actual function
+        // Optionally highlight the selected button
+        document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+// Set initial active layer on page load
+setActiveLayer('AUT'); // Or 'Terrain' or 'AUT' as your default
+// Optionally, highlight the default button
+document.querySelectorAll('.layer-btn').forEach(b => {
+    if (b.getAttribute('data-layer') === 'EGF') b.classList.add('active');
+});
