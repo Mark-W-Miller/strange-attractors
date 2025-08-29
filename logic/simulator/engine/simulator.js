@@ -4,6 +4,7 @@ import { redrawCanvas } from '../../../ui/canvas.js'; // Import redrawCanvas fro
 import { Simulation } from '../../../data/initializers/default.js';
 import { DefaultRules, updateAUTPositions } from './rulesEngine.js'; // Adjust path as needed
 
+
 export const Simulator = {
     isRunning: false,
     isPaused: false,
@@ -108,6 +109,22 @@ export const Simulator = {
         }, interval);
     },
 
+    parseInitialVelocityVector(str) {
+        // Accepts formats: v(1,1), v(r,1), v(r,r), v(-r,1), etc.
+        if (!str || !str.startsWith('v(')) return { x: 0, y: 0 };
+        const parts = str.slice(2, -1).split(',');
+        const parse = v => {
+            if (v === 'r') return Math.random() * 2 - 1; // random between -1 and 1
+            if (v === '-r') return -Math.random();       // random between -1 and 0
+            const num = Number(v);
+            return isNaN(num) ? 0 : num;
+        };
+        return {
+            x: parse(parts[0]),
+            y: parse(parts[1])
+        };
+    },
+
     handleSpawns(AUTInstances, Database) {
         const simTick = this.simTick;
         const FPS = Database.gridConfig.FPS || 60;
@@ -119,16 +136,33 @@ export const Simulator = {
                 if (simTick - aut.lastSpawnTick >= frequencyTicks) {
                     const spawnTypeDef = Object.values(Database.AUTTypes).find(t => t.type === aut.spawn.autType);
                     if (spawnTypeDef) {
+                        // Parse initial velocity vector if present
+                        let velocity = { x: 0, y: 0 };
+                        if (spawnTypeDef.physics && spawnTypeDef.physics.initialVelocityVector) {
+                            velocity = this.parseInitialVelocityVector(spawnTypeDef.physics.initialVelocityVector);
+
+                            // Use initialVelocitySpeed if present, otherwise default to 10
+                            const speed =
+                                typeof spawnTypeDef.physics.initialVelocitySpeed === 'number'
+                                    ? spawnTypeDef.physics.initialVelocitySpeed
+                                    : 10;
+
+                            const mag = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+                            if (mag > 0) {
+                                velocity.x = (velocity.x / mag) * speed;
+                                velocity.y = (velocity.y / mag) * speed;
+                            }
+                        }
                         const newAUT = {
                             id: `${spawnTypeDef.type}-${simTick}-${Math.floor(Math.random() * 1e6)}`,
                             type: spawnTypeDef.type,
                             position: { ...aut.position },
-                            velocity: { x: 0, y: 0 },
-                            rules: spawnTypeDef.rules ? [...spawnTypeDef.rules] : [],
+                            velocity,
                             physics: { ...spawnTypeDef.physics },
                             graphics: { ...spawnTypeDef.graphics },
                             lastSpawnTick: 0,
-                            birthTick: simTick
+                            birthTick: simTick,
+                            rules: Array.isArray(spawnTypeDef.rules) ? [...spawnTypeDef.rules] : [],
                         };
                         Database.AUTInstances.push(newAUT);
                         aut.lastSpawnTick = simTick;

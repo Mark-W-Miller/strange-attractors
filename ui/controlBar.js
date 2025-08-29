@@ -154,8 +154,10 @@ document.querySelectorAll('.layer-btn').forEach(btn => {
     });
 });
 // Set initial active layer on page load
-setActiveLayer('AUT'); // Or 'Terrain' or 'AUT' as your default
-// Optionally, highlight the default button
+setActiveLayer('AUT'); // Or 'Terrain' or 'EGF' as your default
+
+// Highlight the correct button
 document.querySelectorAll('.layer-btn').forEach(b => {
-    if (b.getAttribute('data-layer') === 'EGF') b.classList.add('active');
+    b.classList.remove('active');
+    if (b.getAttribute('data-layer') === 'AUT') b.classList.add('active');
 });

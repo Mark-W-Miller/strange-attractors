@@ -64,13 +64,15 @@ export const Simulation = {
                 color: 'green',
                 size: 8,
             },
-            rules: ['GravityVectorSensitivity'], // Only apply gravity
+            rules: ['GravityVectorSensitivity'],
         },
         {
             name: 'Killer',
             type: 'killer.aut',
             physics: {
                 lifeTimeSeconds: 3,
+                initialVelocityVector: 'v(r,r)', // Moves at (1,1)
+                initialVelocitySpeed: 5, // Moves at (1,1)
             },
 
             graphics: {
@@ -78,7 +80,7 @@ export const Simulation = {
                 color: 'red',
                 size: 8,
             },
-            rules: ['TerrainSensitivity', 'GravityVectorSensitivity'], // Only apply gravity
+            rules: [],
         },
         {
             name: 'Food',
@@ -131,7 +133,7 @@ export const Simulation = {
             rules: [],
         },
         {
-            name: 'killer Source',
+            name: 'Killer Source',
             type: 'killer.source.aut',
             physics: {
                 maxSpeed: 0,
@@ -170,7 +172,7 @@ export const Simulation = {
                 coreSize: 4,
             },
             graphics: {
-                shape: 'triangle',
+                shape: 'circle',
                 color: 'blue',
                 size: 12,
                 maxSize: 48,
@@ -196,7 +198,7 @@ export const Simulation = {
             rules: ['TerrainSensitivity', 'GravityVectorSensitivity'],
         },
         {
-            name: 'Female Source',
+            name: 'Red Female Source',
             type: 'red.female.source.aut',
             physics: {
                 maxSpeed: 0,
