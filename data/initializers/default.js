@@ -3,9 +3,11 @@ export const Simulation = {
     gridConfig: {
         gridWidth: 90,
         gridHeight: 50,
+        golScaleFactor: 2,
         terrainScaleFactor: 2,
         positionScaleFactor: 16,
         terrainOpacity: 0.5,
+        golOpacity: 0.5,
         gridLineColors: {
             EGF: '#CCCCCC',
             Terrain: '#AAAAAA',

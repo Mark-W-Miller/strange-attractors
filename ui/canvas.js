@@ -3,12 +3,13 @@ import { drawEGF } from './draw/drawEGF.js';
 import { drawTerrain } from './draw/drawTerrain.js';
 import { drawAUTs } from './draw/drawAUTs.js';
 import { drawGVs } from './draw/drawGVs.js'; // Import for Gravity Vectors
+import { drawGOL } from './draw/drawGOL.js'; // Import your GOL drawing logic
 import { D_, DB } from '../../debug/DB.js';
 import { populateDebugCheckboxes } from './debugCheckboxes.js'; // Import the debug checkboxes logic
 import { createLayerCheckboxes } from './layersVisibleCheckboxes.js'; // Import the layersVisible logic
 
-export const layers = ['EGF', 'Terrain', 'AUT', 'GV']; // Centralized layers array
-export const layersVisible = new Set(layers); // Initially: all layers visible
+export const layers = ['EGF', 'Terrain', 'AUT', 'GV', 'GOL']; // Add GOL to layers
+export const layersVisible = new Set(layers); // All layers visible by default
 
 export async function initializeCanvas(initializerConfigUrl = '../data/initializers/default.json') {
     D_(DB.CANVAS, '[Canvas] Initializing canvas...');
@@ -62,7 +63,7 @@ function drawLayer(layer) {
             case 'Terrain':
                 drawTerrain(ctx, canvas.width, canvas.height);
                 break;
-            case 'GV': // Gravity Vectors layer
+            case 'GV':
                 drawGVs(ctx, canvas.width, canvas.height);
                 break;
             case 'EGF':
@@ -70,6 +71,9 @@ function drawLayer(layer) {
                 break;
             case 'AUT':
                 drawAUTs(ctx, canvas.width, canvas.height);
+                break;
+            case 'GOL':
+                drawGOL(ctx, canvas.width, canvas.height);
                 break;
         }
     } catch (error) {

@@ -191,3 +191,18 @@ export function initializeTerrainMap(config, gridWidth, gridHeight, scaleFactor)
 
     return TerrainMap;
 }
+
+/**
+ * Initializes the Game of Life (GOL) array.
+ * @param {number} gridWidth - The width of the grid.
+ * @param {number} gridHeight - The height of the grid.
+ * @param {number} golScaleFactor - The scale factor for GOL.
+ * @returns {Array} 2D array representing the GOL grid, initialized to 0.
+ */
+export function initializeGOLArray(gridWidth, gridHeight, golScaleFactor = 1) {
+    const golWidth = Math.floor(gridWidth * golScaleFactor);
+    const golHeight = Math.floor(gridHeight * golScaleFactor);
+    return Array.from({ length: golHeight }, () =>
+        Array.from({ length: golWidth }, () => Math.random() < 0.5 ? 0 : 1)
+    );
+}

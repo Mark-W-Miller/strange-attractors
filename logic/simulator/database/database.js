@@ -1,5 +1,5 @@
 import { D_, DB } from '../../../debug/DB.js';
-import { initializeEGFMap, initializeTerrainMap } from './initialize/initialize.js';
+import { initializeEGFMap, initializeTerrainMap, initializeGOLArray } from './initialize/initialize.js';
 import { loadAUTTypes, buildTypeMap } from './autLoader.js';
 import { initializeGravityVectorArray, calculateGravityVector } from './physics/gravity.js';
 
@@ -13,15 +13,16 @@ export const Database = {
     _EGFMap: [],
     GravityVectorArray: [],
     TerrainMap: [],
-    terrainImages: {}, // Initialize terrainImages as an empty object
-    Simulation: null, // This will hold the loaded simulation
+    terrainImages: {},
+    Simulation: null,
     bondTypes: [],
     bondTypeMap: {},
-    simTime: 0, // in microseconds
+    simTime: 0,
+    GOLArray: [], // <-- Add this line for the Game of Life grid
 
     async initialize(Simulation) {
         try {
-            this.Simulation = Simulation; // Assign Simulation to Database
+            this.Simulation = Simulation;
             D_(DB.DB_INIT, '[Database] Starting initialization...');
 
             // Load grid configuration
@@ -79,6 +80,14 @@ export const Database = {
 
             // Initialize Gravity Vector Array
             this.GravityVectorArray = initializeGravityVectorArray(this.gridConfig, this._EGFMap);
+
+            // Initialize GOLArray (Game of Life grid) using the initializer function
+            this.GOLArray = initializeGOLArray(
+                this.gridConfig.gridWidth,
+                this.gridConfig.gridHeight,
+                this.gridConfig.golScaleFactor
+            );
+            D_(DB.DB_INIT, '[Database] GOLArray initialized.');
 
             // Log debugging information
             this.logDebugInfo();
